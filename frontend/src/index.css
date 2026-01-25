@@ -56,3 +56,44 @@ code {
 .animate-in {
   animation: zoom-in 0.2s ease-out;
 }
+
+/* Small helpers for wallet chip/button */
+.wallet-chip {
+  @apply flex items-center gap-2 bg-slate-900 px-3 py-1 rounded-full border border-slate-800 text-sm;
+}
+
+.btn-ghost {
+  @apply bg-transparent border border-slate-700 text-slate-200 px-3 py-1 rounded hover:bg-slate-800;
+}
+
+/* DeFi visual tokens */
+.card-gradient {
+  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.03));
+  border: 1px solid rgba(99,102,241,0.08);
+  backdrop-filter: blur(6px);
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-purple-600 to-indigo-500 text-white px-4 py-2 rounded-md font-semibold shadow-md hover:opacity-95;
+}
+
+.btn-secondary {
+  @apply bg-slate-800 text-slate-200 px-4 py-2 rounded-md border border-slate-700 hover:bg-slate-700;
+}
+
+.stat-card {
+  @apply p-4 rounded-lg flex flex-col gap-1;
+}
+
+.muted { color: #94a3b8 }
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.12);
+  border-top-color: rgba(255,255,255,0.9);
+  border-radius: 9999px;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
