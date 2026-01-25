@@ -1,0 +1,69 @@
+name: Build and Deploy Anchor (Devnet)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    env:
+      ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install Solana CLI (1.18.26)
+        run: |
+          curl -sSfL https://release.solana.com/v1.18.26/install | sh -s -- > /dev/null
+          echo "::add-path::$HOME/.local/share/solana/install/active_release/bin"
+          solana --version
+
+      - name: Install Anchor CLI
+        run: |
+          npm install -g @coral-xyz/anchor-cli@0.32.1
+          anchor --version
+
+      - name: Restore deploy keypair
+        env:
+          PROGRAM_KEYPAIR: ${{ secrets.PROGRAM_KEYPAIR }}
+        run: |
+          if [ -z "$PROGRAM_KEYPAIR" ]; then echo "Missing PROGRAM_KEYPAIR secret"; exit 1; fi
+          printf '%s' "$PROGRAM_KEYPAIR" > $GITHUB_WORKSPACE/deploy-keypair.json
+          chmod 600 $GITHUB_WORKSPACE/deploy-keypair.json
+
+      - name: Build Anchor program
+        run: |
+          cd programs/auto-savings
+          anchor build
+
+      - name: Deploy program to Devnet
+        env:
+          ANCHOR_WALLET: ${{ github.workspace }}/deploy-keypair.json
+        run: |
+          cd programs/auto-savings
+          anchor deploy --provider.cluster devnet
+
+      - name: Copy IDL to frontend
+        run: |
+          cp programs/auto-savings/target/idl/auto_savings.json frontend/src/idl/auto_savings.json || true
+
+      - name: Run smoke test
+        env:
+          SOLANA_KEYPAIR: ${{ github.workspace }}/deploy-keypair.json
+          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+        run: |
+          npm ci
+          node scripts/smoke_test.js
