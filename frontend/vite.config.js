@@ -17,8 +17,13 @@ export default defineConfig({
         esbuildOptions: {
             target: 'esnext',
         },
+        // exclude mobile wallet protocol from pre-bundling — it's only used in native/mobile contexts
+        exclude: ['@solana-mobile/mobile-wallet-adapter-protocol'],
     },
     build: {
         target: 'esnext',
+        rollupOptions: {
+            external: ['@solana-mobile/mobile-wallet-adapter-protocol'],
+        },
     },
 })
