@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+.yarn/
+.pnp.*
+
+# Build outputs
+target/
+dist/
+build/
+*.so
+*.wasm
+
+# Keep IDL and types (needed for frontend)
+!target/idl/
+!target/types/
+
+# Anchor
+.anchor/
+test-ledger/
+
+# Solana
+.config/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Keypairs (IMPORTANT: Never commit private keys!)
+*-keypair.json
+id.json
+deploy-keypair.json
+
+# Allow essential JSON files
+!package.json
+!package-lock.json
+!tsconfig.json
+!Anchor.toml
+!**/idl/*.json
+!frontend/src/idl/*.json
+!tailwind.config.js
+!vite.config.js
+!postcss.config.js
+
+# Backup files
+*.bak
+
+# OS
+Thumbs.db
+
+# Vercel
+.vercel/
+
