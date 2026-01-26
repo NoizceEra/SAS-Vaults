@@ -34,6 +34,7 @@ pub mod auto_savings {
         user_config.transaction_count = 0;
         user_config.is_active = true;
         user_config.bump = ctx.bumps.user_config;
+        user_config.vault_bump = ctx.bumps.vault;
 
         msg!("User initialized with {}% savings rate", savings_rate);
         Ok(())
@@ -129,16 +130,16 @@ pub mod auto_savings {
         let vault_balance = ctx.accounts.vault.lamports();
         require!(vault_balance >= total_needed, ErrorCode::InsufficientFunds);
 
-        // Transfer SOL from vault to user using PDA signing
+        // Create signer seeds for vault PDA using stored bump
         let user_key = ctx.accounts.user.key();
         let seeds = &[
             b"vault",
             user_key.as_ref(),
-            &[user_config.bump],
+            &[user_config.vault_bump],
         ];
         let signer_seeds = &[&seeds[..]];
 
-        // Transfer requested amount to user
+        // Transfer from vault to user
         let user_transfer = CpiContext::new_with_signer(
             ctx.accounts.system_program.to_account_info(),
             Transfer {
@@ -429,6 +430,7 @@ pub struct UserConfig {
     pub transaction_count: u64,  // 8 bytes
     pub is_active: bool,         // 1 byte
     pub bump: u8,                // 1 byte
+    pub vault_bump: u8,          // 1 byte
 }
 
 #[account]

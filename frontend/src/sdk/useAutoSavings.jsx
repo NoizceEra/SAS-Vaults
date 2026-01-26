@@ -21,12 +21,13 @@ export function useAutoSavings() {
 
     // Initialize client when wallet connects
     useEffect(() => {
-        if (wallet.connected && wallet.publicKey) {
+        if (wallet.connected && wallet.publicKey && connection) {
             try {
                 const newClient = new AutoSavingsClient(connection, wallet);
                 setClient(newClient);
             } catch (error) {
                 console.error('Error creating client:', error);
+                setClient(null);
             }
         } else {
             setClient(null);

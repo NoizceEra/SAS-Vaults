@@ -243,6 +243,10 @@
                     {
                         "name": "bump",
                         "type": "u8"
+                    },
+                    {
+                        "name": "vaultBump",
+                        "type": "u8"
                     }
                 ]
             }

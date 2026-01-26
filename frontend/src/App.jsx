@@ -65,14 +65,14 @@ const App = () => {
     <div className="min-h-screen bg-black text-slate-200 p-6">
       <header className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-500 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 via-purple-600 to-indigo-500 flex items-center justify-center shadow-xl">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m0 0l3-3m-3 3l-3-3" />
             </svg>
           </div>
           <div>
             <div className="text-2xl font-bold">AutoSave</div>
-            <div className="text-xs text-slate-400">Automatic micro-savings for your transfers</div>
+            <div className="text-xs text-slate-400">Automatic micro-savings — DeFi native</div>
           </div>
         </div>
 
@@ -89,34 +89,67 @@ const App = () => {
         </div>
       </header>
 
-      <main className="space-y-6 max-w-3xl mx-auto">
-        <section className="card-gradient p-6 rounded-xl flex items-center gap-6">
-          <div className="flex-1 grid grid-cols-3 gap-4">
-            <div className="stat-card bg-transparent">
-              <div className="text-xs muted">Wallet</div>
-              <div className="text-2xl font-bold">{(walletBalance ?? 0).toFixed(4)} SOL</div>
+      <main className="space-y-6 max-w-5xl mx-auto">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="col-span-2 card-gradient p-6 rounded-xl">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-bold">Dashboard</h2>
+                <div className="text-xs text-slate-400">Overview of your savings</div>
+              </div>
+              <div className="text-sm text-slate-400">Connected: {isConnected ? 'Yes' : 'No'}</div>
             </div>
-            <div className="stat-card bg-transparent">
-              <div className="text-xs muted">Vault</div>
-              <div className="text-2xl font-bold">{(vaultBalance ?? 0).toFixed(4)} SOL</div>
-            </div>
-            <div className="stat-card bg-transparent">
-              <div className="text-xs muted">Status</div>
-              <div className="flex items-center gap-2">
-                <div className={`text-sm font-bold ${isInitialized ? 'text-emerald-400' : 'text-slate-400'}`}>{isInitialized ? 'Active' : 'Not initialized'}</div>
-                {loading && <div className="spinner" aria-hidden />}
+
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="stat-card bg-transparent">
+                <div className="text-xs muted">Wallet</div>
+                <div className="text-2xl font-bold">{(walletBalance ?? 0).toFixed(4)} SOL</div>
+              </div>
+              <div className="stat-card bg-transparent">
+                <div className="text-xs muted">Vault</div>
+                <div className="text-2xl font-bold">{(vaultBalance ?? 0).toFixed(4)} SOL</div>
+              </div>
+              <div className="stat-card bg-transparent">
+                <div className="text-xs muted">Status</div>
+                <div className="flex items-center gap-2">
+                  <div className={`text-sm font-bold ${isInitialized ? 'text-emerald-400' : 'text-slate-400'}`}>{isInitialized ? 'Active' : 'Not initialized'}</div>
+                  {loading && <div className="spinner" aria-hidden />}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex flex-col items-end gap-3">
-            <div className="text-sm text-slate-400">Connected: {isConnected ? 'Yes' : 'No'}</div>
-            <div className="flex gap-2">
+            <div className="mb-4">
+              <div className="text-xs muted mb-2">Savings Rate</div>
+              <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                <div className="h-3 bg-gradient-to-r from-rose-500 to-indigo-500" style={{ width: `${(userConfig?.savingsRate ?? 0)}%` }} />
+              </div>
+              <div className="text-xs text-slate-400 mt-2">{userConfig?.savingsRate ?? '--'}% of transfers saved</div>
+            </div>
+
+            <div className="flex gap-3">
               <button onClick={doInitialize} disabled={!isConnected || isInitialized || loading} className="btn-primary">Initialize</button>
               <button onClick={() => setActiveModal('deposit')} disabled={!isConnected} className="btn-secondary">Deposit</button>
               <button onClick={() => setActiveModal('withdraw')} disabled={!isConnected || (vaultBalance ?? 0) === 0} className="btn-secondary">Withdraw</button>
+              <button onClick={refresh} className="btn-ghost">Refresh</button>
             </div>
           </div>
+
+          <aside className="space-y-4">
+            <div className="card-gradient p-4 rounded-xl">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-bold">Your Wallet</div>
+                <div className="text-xs text-slate-400">{shortAddress}</div>
+              </div>
+              <div className="text-2xl font-bold mb-2">{(walletBalance ?? 0).toFixed(4)} SOL</div>
+              <div className="text-xs text-slate-400">Main balance</div>
+            </div>
+
+            <div className="card-gradient p-4 rounded-xl">
+              <div className="text-sm font-bold mb-2">Vault Insights</div>
+              <div className="text-lg font-semibold">{(vaultBalance ?? 0).toFixed(4)} SOL</div>
+              <div className="text-xs text-slate-400 mt-2">Auto-saved amount across transactions</div>
+            </div>
+          </aside>
         </section>
 
         {activeModal && (

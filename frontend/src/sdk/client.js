@@ -5,17 +5,66 @@ import {
     LAMPORTS_PER_SOL
 } from '@solana/web3.js';
 import { AnchorProvider, Program, BN } from '@coral-xyz/anchor';
-import idl from '../idl/auto_savings.json';
+import { IDL } from '../idl/idl.js';
 
-// Program ID - read from Vite env `VITE_PROGRAM_ID` with fallback to deployed ID
-const PROGRAM_ID = new PublicKey(import.meta.env.VITE_PROGRAM_ID || '8hoCkMSWSvSt9oCokRKsKx8wqvVSWjGNnZTuvRFYhDMR');
+// Debug: Check if IDL loaded correctly
+console.log('IDL loaded:', IDL ? 'Yes' : 'No');
+console.log('IDL type:', typeof IDL);
+console.log('IDL has address:', IDL?.metadata?.address);
+
+// Program ID - read from Vite env `VITE_PROGRAM_ID`, then IDL.metadata.address, then fallback
+const programIdString = import.meta.env.VITE_PROGRAM_ID || IDL?.metadata?.address || '8hoCkMSWSvSt9oCokRKsKx8wqvVSWjGNnZTuvRFYhDMR';
+console.log('Program ID string:', programIdString);
+console.log('Program ID from env:', import.meta.env.VITE_PROGRAM_ID);
+
+const PROGRAM_ID = new PublicKey(programIdString);
+console.log('PROGRAM_ID created:', PROGRAM_ID.toString());
 
 export class AutoSavingsClient {
     constructor(connection, wallet) {
+        console.log('AutoSavingsClient constructor called');
+        console.log('connection:', connection);
+        console.log('wallet:', wallet);
+        console.log('wallet.publicKey:', wallet?.publicKey);
+
+        if (!connection) {
+            throw new Error('Connection is required');
+        }
+
+        if (!wallet || !wallet.publicKey) {
+            throw new Error('Wallet not connected');
+        }
+
+        if (!IDL) {
+            throw new Error('IDL not loaded');
+        }
+
+        console.log('Creating AnchorProvider...');
         this.provider = new AnchorProvider(connection, wallet, {
             commitment: 'confirmed',
         });
-        this.program = new Program(idl, PROGRAM_ID, this.provider);
+        console.log('Provider created:', this.provider);
+
+        console.log('Creating Program with IDL and PROGRAM_ID...');
+        console.log('IDL:', IDL);
+        console.log('PROGRAM_ID:', PROGRAM_ID);
+        console.log('PROGRAM_ID type:', PROGRAM_ID.constructor.name);
+        console.log('Provider:', this.provider);
+
+        try {
+            // Pass programId explicitly as PublicKey
+            this.program = new Program(IDL, PROGRAM_ID, this.provider);
+            console.log('Program created successfully!');
+        } catch (error) {
+            console.error('Error creating Program:', error);
+            console.error('Error details:', {
+                idl: IDL,
+                programId: PROGRAM_ID,
+                programIdString: PROGRAM_ID.toString(),
+                provider: this.provider
+            });
+            throw error;
+        }
     }
 
     /**
