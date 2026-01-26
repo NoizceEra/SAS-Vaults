@@ -1,0 +1,310 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area 
+} from 'recharts';
+import { 
+  Wallet, 
+  TrendingUp, 
+  Zap, 
+  Target, 
+  Coffee, 
+  Clock, 
+  ArrowUpRight, 
+  Settings, 
+  History,
+  ShieldCheck,
+  ChevronRight,
+  Bell
+} from 'lucide-react';
+
+const mockChartData = [
+  { day: 'Mon', amount: 0.12 },
+  { day: 'Tue', amount: 0.15 },
+  { day: 'Wed', amount: 0.14 },
+  { day: 'Thu', amount: 0.21 },
+  { day: 'Fri', amount: 0.28 },
+  { day: 'Sat', amount: 0.35 },
+  { day: 'Sun', amount: 0.42 },
+];
+
+const App = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [walletConnected, setWalletConnected] = useState(false);
+
+  const StatCard = ({ title, value, subtext, icon: Icon, trend }) => (
+    <div className="bg-[#0f111a] border border-white/5 p-5 rounded-2xl hover:border-purple-500/30 transition-all duration-300 group">
+      <div className="flex justify-between items-start mb-4">
+        <div className="p-2 bg-purple-500/10 rounded-xl group-hover:scale-110 transition-transform">
+          <Icon className="w-5 h-5 text-purple-400" />
+        </div>
+        {trend && (
+          <span className={`text-xs font-medium px-2 py-1 rounded-full ${trend > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+            {trend > 0 ? '+' : ''}{trend}%
+          </span>
+        )}
+      </div>
+      <p className="text-gray-400 text-sm font-medium">{title}</p>
+      <h3 className="text-2xl font-bold text-white mt-1">{value}</h3>
+      <p className="text-gray-500 text-xs mt-2 flex items-center gap-1">
+        {subtext}
+      </p>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#050508] text-gray-100 font-sans p-4 md:p-8">
+      {/* Header */}
+      <nav className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <ArrowUpRight className="text-white w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">AutoSave</h1>
+            <p className="text-xs text-gray-400">Micro-savings for the DeFi native</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <button className="p-2 text-gray-400 hover:text-white transition-colors relative">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full border-2 border-[#050508]"></span>
+          </button>
+          <button 
+            onClick={() => setWalletConnected(!walletConnected)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 ${
+              walletConnected 
+              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+              : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/20 hover:scale-[1.02]'
+            }`}
+          >
+            <Wallet className="w-4 h-4" />
+            {walletConnected ? '0x82...291a' : 'Connect Wallet'}
+          </button>
+        </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left Column: Core Metrics */}
+        <div className="lg:col-span-8 space-y-6">
+          
+          {/* Main Dashboard Panel */}
+          <section className="bg-[#0f111a] border border-white/5 rounded-3xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+              <Zap className="w-32 h-32 text-purple-500" />
+            </div>
+            
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h2 className="text-2xl font-bold">Performance</h2>
+                  <p className="text-gray-400 text-sm">Your savings have grown by 12% this week</p>
+                </div>
+                <div className="flex gap-2">
+                  {['1W', '1M', 'All'].map(range => (
+                    <button key={range} className="px-3 py-1 text-xs rounded-lg border border-white/5 hover:bg-white/5 transition-colors">
+                      {range}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-[240px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={mockChartData}>
+                    <defs>
+                      <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                    <XAxis 
+                      dataKey="day" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{fill: '#6b7280', fontSize: 12}} 
+                      dy={10}
+                    />
+                    <Tooltip 
+                      contentStyle={{backgroundColor: '#161925', borderColor: '#ffffff10', borderRadius: '12px'}}
+                      itemStyle={{color: '#a78bfa'}}
+                    />
+                    <Area type="monotone" dataKey="amount" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorAmt)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-8 border-t border-white/5">
+                <div>
+                  <p className="text-gray-500 text-xs mb-1">Total Vault</p>
+                  <p className="text-lg font-bold">12.45 SOL</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs mb-1">Yield Earned</p>
+                  <p className="text-lg font-bold text-emerald-400">+0.12 SOL</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs mb-1">Savings Rate</p>
+                  <p className="text-lg font-bold">2.5% Sweep</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs mb-1">Status</p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium">Active</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-4">
+                <button className="flex-1 min-w-[140px] bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                  Deposit
+                </button>
+                <button className="flex-1 min-w-[140px] bg-white/5 text-white font-bold py-3 rounded-xl hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+                  Withdraw
+                </button>
+                <button className="p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors border border-white/5">
+                  <Settings className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Additional Analytics Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-[#0f111a] border border-white/5 p-6 rounded-3xl">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold flex items-center gap-2">
+                  <Target className="w-4 h-4 text-rose-400" />
+                  Savings Goal
+                </h3>
+                <span className="text-xs text-gray-500 font-medium">Vacation Fund</span>
+              </div>
+              <div className="space-y-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Progress</span>
+                  <span className="font-medium">75% (15/20 SOL)</span>
+                </div>
+                <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-purple-500 to-rose-500 w-[75%] rounded-full relative">
+                    <div className="absolute inset-0 bg-white/20 animate-shimmer"></div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 italic text-center">
+                  Estimated completion: October 14th
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-[#0f111a] border border-white/5 p-6 rounded-3xl">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold flex items-center gap-2">
+                  <History className="w-4 h-4 text-blue-400" />
+                  Recent Activity
+                </h3>
+                <button className="text-xs text-purple-400 hover:text-purple-300">View All</button>
+              </div>
+              <div className="space-y-4">
+                {[
+                  { label: 'Micro-sweep', amount: '+0.0024 SOL', time: '12m ago' },
+                  { label: 'Yield Reward', amount: '+0.0001 SOL', time: '2h ago' },
+                  { label: 'Manual Top-up', amount: '+0.5000 SOL', time: '1d ago' },
+                ].map((item, i) => (
+                  <div key={i} className="flex justify-between items-center p-2 rounded-xl hover:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                        <ArrowUpRight className="w-4 h-4 text-emerald-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{item.label}</p>
+                        <p className="text-[10px] text-gray-500">{item.time}</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-mono font-bold text-emerald-400">{item.amount}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Insights & Badges */}
+        <div className="lg:col-span-4 space-y-6">
+          
+          <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border border-purple-500/20 p-6 rounded-3xl">
+            <h3 className="text-sm font-bold text-purple-300 uppercase tracking-wider mb-4">Savings Insights</h3>
+            
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-amber-500/10 rounded-2xl">
+                  <Coffee className="w-6 h-6 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-gray-300 font-bold">Coffee Index</p>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    You've saved the equivalent of <span className="text-white font-bold">42 cups of coffee</span> this month.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-blue-500/10 rounded-2xl">
+                  <Clock className="w-6 h-6 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-gray-300 font-bold">Savings Streak</p>
+                  <div className="flex gap-1 mt-2">
+                    {[1,1,1,1,0,0,0].map((v, i) => (
+                      <div key={i} className={`h-1.5 flex-1 rounded-full ${v ? 'bg-emerald-500' : 'bg-white/10'}`} />
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-1">4 day streak! Don't break it.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#0f111a] border border-white/5 p-6 rounded-3xl">
+            <h3 className="font-bold mb-4 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              Security Check
+            </h3>
+            <div className="bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-2xl">
+              <p className="text-xs text-emerald-400 font-medium">Auto-compound Active</p>
+              <p className="text-[10px] text-gray-500 mt-1">Your savings are currently earning 4.2% APY in the Solana Liquidity Pool.</p>
+            </div>
+          </div>
+
+          <div className="bg-[#0f111a] border border-white/5 p-6 rounded-3xl">
+            <h3 className="font-bold mb-4">Milestones</h3>
+            <div className="grid grid-cols-4 gap-3">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className={`aspect-square rounded-xl flex items-center justify-center border ${i < 3 ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-white/5 border-white/5 text-gray-600'}`}>
+                  <Zap className="w-5 h-5" />
+                </div>
+              ))}
+            </div>
+            <button className="w-full mt-4 text-xs text-gray-500 flex items-center justify-center gap-1 hover:text-white transition-colors">
+              View Achievement Gallery <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+
+        </div>
+      </main>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
+        }
+      `}} />
+    </div>
+  );
+};
+
+export default App;
