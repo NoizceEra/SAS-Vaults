@@ -1,8 +1,10 @@
 [toolchain]
+anchor_version = "0.32.1"
 
 [features]
 resolution = true
 skip-lint = false
+seeds = true
 
 [programs.devnet]
 auto_savings = "8hoCkMSWSvSt9oCokRKsKx8wqvVSWjGNnZTuvRFYhDMR"
