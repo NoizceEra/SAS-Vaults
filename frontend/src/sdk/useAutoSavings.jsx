@@ -19,6 +19,7 @@ export function useAutoSavings() {
     const [walletBalance, setWalletBalance] = useState(0);
     const [isInitialized, setIsInitialized] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [initializing, setInitializing] = useState(true);
 
     // Initialize client when wallet connects
     useEffect(() => {
@@ -88,6 +89,7 @@ export function useAutoSavings() {
             console.error('Error loading user data:', error);
         } finally {
             setLoading(false);
+            setInitializing(false);
         }
     };
 
@@ -208,6 +210,7 @@ export function useAutoSavings() {
         walletBalance,
         isInitialized,
         loading,
+        initializing,
         isConnected: wallet.connected,
 
         // Actions

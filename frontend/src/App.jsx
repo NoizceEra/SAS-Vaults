@@ -14,6 +14,7 @@ function App() {
   const {
     vault,
     loading,
+    initializing,
     initializeVault,
     deposit,
     withdraw,
@@ -102,8 +103,8 @@ function App() {
     }
   };
 
-  // Show loading state
-  if (loading) {
+  // Show loading state only during initial data fetch
+  if (initializing && wallet.connected) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

@@ -8,13 +8,26 @@ import React, { useState } from 'react';
 export const OnboardingScreen = ({ onCreateVault }) => {
     const [savingsRate, setSavingsRate] = useState(50);
     const [isCreating, setIsCreating] = useState(false);
+    const [error, setError] = useState(null);
 
     const handleCreateVault = async () => {
         setIsCreating(true);
+        setError(null);
         try {
             await onCreateVault(savingsRate);
+            // Success - component will unmount as vault is created
         } catch (error) {
             console.error('Vault creation failed:', error);
+
+            // Set user-friendly error message
+            let errorMessage = 'Failed to create vault. Please try again.';
+            if (error.message?.includes('User rejected')) {
+                errorMessage = 'Transaction was rejected. Please approve the transaction to continue.';
+            } else if (error.message?.includes('insufficient')) {
+                errorMessage = 'Insufficient SOL balance. Please add funds to your wallet.';
+            }
+
+            setError(errorMessage);
             setIsCreating(false);
         }
     };
@@ -159,6 +172,21 @@ export const OnboardingScreen = ({ onCreateVault }) => {
                         </div>
                     </div>
                 </div>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="mb-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 animate-in">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                                <span className="text-red-500 text-xl">⚠️</span>
+                            </div>
+                            <div className="flex-1">
+                                <div className="font-semibold text-red-500">Error</div>
+                                <div className="text-sm text-red-400">{error}</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Create Vault Button */}
                 <button
