@@ -5,7 +5,7 @@ import React, { useState } from 'react';
  * First-time user setup for savings rate
  * Matches the design from onboarding_setup_view.png
  */
-export const OnboardingScreen = ({ onCreateVault }) => {
+export const OnboardingScreen = ({ onCreateVault, walletBalance = 0 }) => {
     const [savingsRate, setSavingsRate] = useState(50);
     const [isCreating, setIsCreating] = useState(false);
     const [error, setError] = useState(null);
@@ -172,6 +172,24 @@ export const OnboardingScreen = ({ onCreateVault }) => {
                         </div>
                     </div>
                 </div>
+
+                {/* Low Balance Warning */}
+                {walletBalance < 0.003 && (
+                    <div className="mb-4 p-4 rounded-lg bg-orange-500/10 border border-orange-500/30 animate-in text-left">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                                <span className="text-orange-500 text-xl">⚠️</span>
+                            </div>
+                            <div className="flex-1">
+                                <div className="font-semibold text-orange-500">Low Balance</div>
+                                <div className="text-sm text-orange-400">
+                                    You need ~0.003 SOL to create a vault.
+                                    Current balance: {walletBalance.toFixed(4)} SOL
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Error Message */}
                 {error && (

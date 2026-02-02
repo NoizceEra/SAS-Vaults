@@ -185,7 +185,7 @@ function App() {
 
   // Show onboarding if no vault exists
   if (!vault) {
-    return <OnboardingScreen onCreateVault={handleCreateVault} />;
+    return <OnboardingScreen onCreateVault={handleCreateVault} walletBalance={walletBalance} />;
   }
 
   // Show main dashboard
