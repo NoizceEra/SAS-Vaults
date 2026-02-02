@@ -6,9 +6,11 @@ import { PublicKey } from '@solana/web3.js';
  * Update PROGRAM_ID after deploying the smart contract
  */
 
-// PLACEHOLDER - Update this after smart contract deployment
-// This is a valid Solana address format but not yet deployed
-export const PROGRAM_ID = new PublicKey('11111111111111111111111111111111');
+// ✅ DEPLOYED TO DEVNET
+// Program ID: B4Zbm8qH2zLYSt7b3E79NNBCPvG1zQyUDiGWwDXcvG8Z
+// Deployed: Feb 2, 2026
+// Transaction: 5W38MvkcwNdWHDdGPmdZbYue8Gfb1Jxcg2wwX1gEoF7f7iyFKuCJEmYpJrm3GJe4EXy8VTKWBnHXGtirXTiAAYoi
+export const PROGRAM_ID = new PublicKey('B4Zbm8qH2zLYSt7b3E79NNBCPvG1zQyUDiGWwDXcvG8Z');
 
 // Network Configuration
 export const NETWORK = 'devnet'; // 'devnet' | 'mainnet-beta'
@@ -33,14 +35,14 @@ export const getExplorerUrl = (signature, type = 'tx') => {
     return `${EXPLORER_URL}/${type}/${signature}`;
 };
 
-// Feature Flags
+// Feature Flags - ALL ENABLED AFTER SUCCESSFUL DEPLOYMENT
 export const FEATURES = {
-    ENABLE_DEPOSITS: false, // Enable after contract deployment
-    ENABLE_WITHDRAWALS: false, // Enable after contract deployment
-    ENABLE_RATE_UPDATES: false, // Enable after contract deployment
-    SHOW_DEMO_MODE: true, // Show demo mode banner
+    ENABLE_DEPOSITS: true, // ✅ Enabled - Contract deployed
+    ENABLE_WITHDRAWALS: true, // ✅ Enabled - Contract deployed
+    ENABLE_RATE_UPDATES: true, // ✅ Enabled - Contract deployed
+    SHOW_DEMO_MODE: false, // ❌ Disabled - Live on devnet
 };
 
-// Demo Mode Message
+// Demo Mode Message (not shown when SHOW_DEMO_MODE is false)
 export const DEMO_MODE_MESSAGE =
-    'Smart contract deployment pending. UI demonstration mode active.';
+    'Smart contract deployed to devnet. Full functionality active.';
