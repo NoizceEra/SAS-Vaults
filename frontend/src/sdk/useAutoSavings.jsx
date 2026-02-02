@@ -13,6 +13,7 @@ export function useAutoSavings() {
     const wallet = useWallet();
     const { connection } = useConnection();
     const [client, setClient] = useState(null);
+    const [vault, setVault] = useState(null);
     const [userConfig, setUserConfig] = useState(null);
     const [vaultBalance, setVaultBalance] = useState(0);
     const [walletBalance, setWalletBalance] = useState(0);
@@ -31,6 +32,7 @@ export function useAutoSavings() {
             }
         } else {
             setClient(null);
+            setVault(null);
             setUserConfig(null);
             setIsInitialized(false);
         }
@@ -61,6 +63,15 @@ export function useAutoSavings() {
                 const config = await client.getUserConfig();
                 setUserConfig(config);
 
+                // Create vault object for components
+                setVault({
+                    savingsBalance: config.savingsBalance || 0,
+                    spendingBalance: config.spendingBalance || 0,
+                    savingsRate: config.savingsRate || 50,
+                    totalDeposited: config.totalDeposited || 0,
+                    totalWithdrawn: config.totalWithdrawn || 0,
+                });
+
                 // Load balances
                 const vaultBal = await client.getVaultBalance();
                 const walletBal = await client.getWalletBalance();
@@ -71,6 +82,7 @@ export function useAutoSavings() {
                 const walletBal = await client.getWalletBalance();
                 setWalletBalance(walletBal);
                 setVaultBalance(0);
+                setVault(null);
             }
         } catch (error) {
             console.error('Error loading user data:', error);
@@ -142,7 +154,7 @@ export function useAutoSavings() {
     /**
      * Withdraw from vault
      */
-    const withdraw = async (amount) => {
+    const withdraw = async (amount, fromSavings = true) => {
         if (!client) throw new Error('Client not initialized');
 
         try {
@@ -190,6 +202,7 @@ export function useAutoSavings() {
     return {
         // State
         client,
+        vault,
         userConfig,
         vaultBalance,
         walletBalance,
@@ -199,11 +212,13 @@ export function useAutoSavings() {
 
         // Actions
         initializeUser,
+        initializeVault: initializeUser, // Alias for App.jsx
         updateSavingsRate,
         deposit,
         withdraw,
         processTransfer,
         calculateSavings,
         refresh: loadUserData,
+        refreshVault: loadUserData, // Alias for App.jsx
     };
 }

@@ -1,242 +1,251 @@
-import React, { useState } from 'react'
-import { useAutoSavings } from './sdk/useAutoSavings'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-import { useWallet } from '@solana/wallet-adapter-react'
-// Temporarily removed `recharts` to avoid dev-time dependency issues.
-import { ArrowUpRight, Zap, Target, Coffee, Clock, Settings, History, ShieldCheck, ChevronRight, Bell, Wallet, ArrowUpRight as ArrowIcon } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useAutoSavings } from './sdk/useAutoSavings';
+import { OnboardingScreen, Dashboard, DemoModeBanner } from './components';
+import './index.css';
 
-const mockChartData = [
-  { day: 'Mon', amount: 0.12 },
-  { day: 'Tue', amount: 0.15 },
-  { day: 'Wed', amount: 0.14 },
-  { day: 'Thu', amount: 0.21 },
-  { day: 'Fri', amount: 0.28 },
-  { day: 'Sat', amount: 0.35 },
-  { day: 'Sun', amount: 0.42 },
-]
-
-const App = () => {
-  const [walletConnected, setWalletConnected] = useState(false)
+/**
+ * Main App Component
+ * Implements the complete UI/UX flow from the mockups
+ */
+function App() {
+  const wallet = useWallet();
   const {
-    isConnected,
-    isInitialized,
-    walletBalance,
-    vaultBalance,
-    userConfig,
-    initializeUser,
+    vault,
     loading,
-    refresh,
-  } = useAutoSavings()
+    initializeVault,
+    deposit,
+    withdraw,
+    updateSavingsRate,
+    refreshVault
+  } = useAutoSavings();
 
-  const wallet = useWallet()
-  const shortAddress = wallet?.publicKey ? `${wallet.publicKey.toString().slice(0,6)}...${wallet.publicKey.toString().slice(-4)}` : 'Not connected'
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [transactions, setTransactions] = useState([]);
 
-  const doInitialize = async () => {
+  // Fetch wallet balance
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (wallet.publicKey && wallet.connection) {
+        try {
+          const balance = await wallet.connection.getBalance(wallet.publicKey);
+          setWalletBalance(balance / 1e9);
+        } catch (error) {
+          console.error('Failed to fetch balance:', error);
+        }
+      }
+    };
+
+    fetchBalance();
+    const interval = setInterval(fetchBalance, 10000); // Refresh every 10s
+    return () => clearInterval(interval);
+  }, [wallet.publicKey, wallet.connection]);
+
+  // Handle vault creation
+  const handleCreateVault = async (savingsRate) => {
     try {
-      await initializeUser(10)
-      await refresh()
-      alert('Initialized')
-    } catch (e) {
-      console.error(e)
-      alert('Init failed: ' + (e.message || e))
+      await initializeVault(savingsRate);
+      await refreshVault();
+    } catch (error) {
+      console.error('Vault creation failed:', error);
+      throw error;
     }
+  };
+
+  // Handle deposit
+  const handleDeposit = async (amount) => {
+    try {
+      await deposit(amount);
+      await refreshVault();
+
+      // Add transaction to local state
+      setTransactions(prev => [{
+        type: 'deposit',
+        amount,
+        timestamp: Date.now(),
+        signature: null // Will be populated by actual transaction
+      }, ...prev]);
+    } catch (error) {
+      console.error('Deposit failed:', error);
+      throw error;
+    }
+  };
+
+  // Handle withdrawal
+  const handleWithdraw = async (amount, fromSavings) => {
+    try {
+      await withdraw(amount, fromSavings);
+      await refreshVault();
+
+      // Add transaction to local state
+      setTransactions(prev => [{
+        type: 'withdrawal',
+        amount,
+        timestamp: Date.now(),
+        signature: null
+      }, ...prev]);
+    } catch (error) {
+      console.error('Withdrawal failed:', error);
+      throw error;
+    }
+  };
+
+  // Handle savings rate update
+  const handleUpdateSavingsRate = async (newRate) => {
+    try {
+      await updateSavingsRate(newRate);
+      await refreshVault();
+    } catch (error) {
+      console.error('Rate update failed:', error);
+      throw error;
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-secondary">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
-  // Simple SVG placeholder for the performance chart (fallback for recharts)
-  const svgPoints = mockChartData.map((d, i) => `${(i / (mockChartData.length - 1)) * 100},${100 - Math.min(100, d.amount * 200)}`).join(' ')
-  const polygonPoints = `0,100 ${svgPoints} 100,100`
+  // Show wallet connection prompt
+  if (!wallet.connected) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center animate-in">
+          {/* Logo */}
+          <div className="mb-8">
+            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center glow-purple">
+              <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
+              </svg>
+            </div>
+          </div>
 
-  return (
-    <div className="min-h-screen bg-[#050508] text-gray-100 font-sans p-4 md:p-8">
-      <nav className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
-            <ArrowUpRight className="text-white w-6 h-6" />
+          {/* Title */}
+          <h1 className="text-4xl font-bold mb-4 text-gradient">
+            Solana Auto-Savings
+          </h1>
+          <p className="text-secondary mb-8 text-lg">
+            Save automatically with every transaction
+          </p>
+
+          {/* Features */}
+          <div className="space-y-3 mb-8 text-left">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-green-500 text-xl">✓</span>
+              </div>
+              <div>
+                <div className="font-semibold">Automatic Savings</div>
+                <div className="text-sm text-tertiary">Set it and forget it</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-blue-500 text-xl">🔒</span>
+              </div>
+              <div>
+                <div className="font-semibold">Non-Custodial</div>
+                <div className="text-sm text-tertiary">You always control your funds</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+              <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-purple-500 text-xl">⚡</span>
+              </div>
+              <div>
+                <div className="font-semibold">Low Fees</div>
+                <div className="text-sm text-tertiary">Only 0.4% platform fee</div>
+              </div>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">AutoSave</h1>
-            <p className="text-xs text-gray-400">Micro-savings for the DeFi native</p>
+
+          {/* Connect Wallet Button */}
+          <div className="flex justify-center">
+            <WalletMultiButton className="btn-primary" />
           </div>
+
+          <p className="text-xs text-tertiary mt-4">
+            Powered by Solana
+          </p>
         </div>
+      </div>
+    );
+  }
 
-        <div className="flex items-center gap-4">
-          <button className="p-2 text-gray-400 hover:text-white transition-colors relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full border-2 border-[#050508]"></span>
-          </button>
-          <div className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-300 ${isConnected ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/20 hover:scale-[1.02]'}`}>
-            <Wallet className="w-4 h-4" />
+  // Show onboarding if no vault exists
+  if (!vault) {
+    return <OnboardingScreen onCreateVault={handleCreateVault} />;
+  }
+
+  // Show main dashboard
+  return (
+    <>
+      {/* Header */}
+      <header className="border-b border-white/10 bg-primary/50 backdrop-blur-lg sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Auto-Savings</h1>
+              <p className="text-xs text-tertiary">Solana Protocol</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden md:block text-sm">
+              <span className="text-secondary">Wallet: </span>
+              <span className="font-mono font-semibold">
+                {wallet.publicKey?.toString().slice(0, 4)}...
+                {wallet.publicKey?.toString().slice(-4)}
+              </span>
+            </div>
             <WalletMultiButton />
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 space-y-6">
-          <section className="bg-[#0f111a] border border-white/5 rounded-3xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-              <Zap className="w-32 h-32 text-purple-500" />
-            </div>
-            <div className="p-8">
-              <div className="flex justify-between items-center mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold">Performance</h2>
-                  <p className="text-gray-400 text-sm">Your savings have grown by 12% this week</p>
-                </div>
-                <div className="flex gap-2">
-                  {['1W', '1M', 'All'].map((range) => (
-                    <button key={range} className="px-3 py-1 text-xs rounded-lg border border-white/5 hover:bg-white/5 transition-colors">{range}</button>
-                  ))}
-                </div>
-              </div>
+      {/* Demo Mode Banner */}
+      <DemoModeBanner />
 
-              <div className="h-[240px] w-full flex items-center justify-center">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
-                  <defs>
-                    <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <polyline points={svgPoints} fill="none" stroke="#8b5cf6" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
-                  <polygon points={polygonPoints} fill="url(#colorAmt)" opacity="0.9" />
-                </svg>
-              </div>
+      {/* Main Dashboard */}
+      <Dashboard
+        vault={vault}
+        walletBalance={walletBalance}
+        onDeposit={handleDeposit}
+        onWithdraw={handleWithdraw}
+        onUpdateSavingsRate={handleUpdateSavingsRate}
+        transactions={transactions}
+      />
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-8 border-t border-white/5">
-                <div>
-                  <p className="text-gray-500 text-xs mb-1">Total Vault</p>
-                  <p className="text-lg font-bold">{(vaultBalance ?? 0).toFixed(4)} SOL</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-xs mb-1">Yield Earned</p>
-                  <p className="text-lg font-bold text-emerald-400">+0.12 SOL</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-xs mb-1">Savings Rate</p>
-                  <p className="text-lg font-bold">{userConfig?.savingsRate ?? '—'}% Sweep</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-xs mb-1">Status</p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium">{isInitialized ? 'Active' : 'Not initialized'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 flex flex-wrap gap-4">
-                <button onClick={doInitialize} className="flex-1 min-w-[140px] bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">Initialize</button>
-                <button className="flex-1 min-w-[140px] bg-white/5 text-white font-bold py-3 rounded-xl hover:bg-white/10 transition-colors flex items-center justify-center gap-2">Deposit</button>
-                <button className="p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors border border-white/5"><Settings className="w-5 h-5 text-gray-400" /></button>
-              </div>
-            </div>
-          </section>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-[#0f111a] border border-white/5 p-6 rounded-3xl">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold flex items-center gap-2"><Target className="w-4 h-4 text-rose-400" /> Savings Goal</h3>
-                <span className="text-xs text-gray-500 font-medium">Vacation Fund</span>
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Progress</span>
-                  <span className="font-medium">75% (15/20 SOL)</span>
-                </div>
-                <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-purple-500 to-rose-500 w-[75%] rounded-full relative">
-                    <div className="absolute inset-0 bg-white/20 animate-shimmer"></div>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 italic text-center">Estimated completion: October 14th</p>
-              </div>
-            </div>
-
-            <div className="bg-[#0f111a] border border-white/5 p-6 rounded-3xl">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold flex items-center gap-2"><History className="w-4 h-4 text-blue-400" /> Recent Activity</h3>
-                <button className="text-xs text-purple-400 hover:text-purple-300">View All</button>
-              </div>
-              <div className="space-y-4">
-                {[
-                  { label: 'Micro-sweep', amount: '+0.0024 SOL', time: '12m ago' },
-                  { label: 'Yield Reward', amount: '+0.0001 SOL', time: '2h ago' },
-                  { label: 'Manual Top-up', amount: '+0.5000 SOL', time: '1d ago' },
-                ].map((item, i) => {
-                  return (
-                    <div key={i} className="flex justify-between items-center p-2 rounded-xl hover:bg-white/5 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                          <ArrowUpRight className="w-4 h-4 text-emerald-500" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">{item.label}</p>
-                          <p className="text-[10px] text-gray-500">{item.time}</p>
-                        </div>
-                      </div>
-                      <span className="text-sm font-mono font-bold text-emerald-400">{item.amount}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+      {/* Footer */}
+      <footer className="border-t border-white/10 mt-16">
+        <div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-tertiary">
+          <p>Solana Auto-Savings Protocol v1.0.0</p>
+          <p className="mt-2">
+            <a href="#" className="hover:text-purple-500 transition-colors">Documentation</a>
+            {' • '}
+            <a href="#" className="hover:text-purple-500 transition-colors">GitHub</a>
+            {' • '}
+            <a href="#" className="hover:text-purple-500 transition-colors">Discord</a>
+          </p>
         </div>
-
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border border-purple-500/20 p-6 rounded-3xl">
-            <h3 className="text-sm font-bold text-purple-300 uppercase tracking-wider mb-4">Savings Insights</h3>
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-amber-500/10 rounded-2xl"><Coffee className="w-6 h-6 text-amber-500" /></div>
-                <div>
-                  <p className="text-gray-300 font-bold">Coffee Index</p>
-                  <p className="text-xs text-gray-500 leading-relaxed">You've saved the equivalent of <span className="text-white font-bold">42 cups of coffee</span> this month.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-blue-500/10 rounded-2xl"><Clock className="w-6 h-6 text-blue-500" /></div>
-                <div>
-                  <p className="text-gray-300 font-bold">Savings Streak</p>
-                  <div className="flex gap-1 mt-2">
-                    {[1,1,1,1,0,0,0].map((v, i) => {
-                      return <div key={i} className={`h-1.5 flex-1 rounded-full ${v ? 'bg-emerald-500' : 'bg-white/10'}`} />
-                    })}
-                  </div>
-                  <p className="text-[10px] text-gray-500 mt-1">4 day streak! Don't break it.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#0f111a] border border-white/5 p-6 rounded-3xl">
-            <h3 className="font-bold mb-4 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-400" /> Security Check</h3>
-            <div className="bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-2xl">
-              <p className="text-xs text-emerald-400 font-medium">Auto-compound Active</p>
-              <p className="text-[10px] text-gray-500 mt-1">Your savings are currently earning 4.2% APY in the Solana Liquidity Pool.</p>
-            </div>
-          </div>
-
-          <div className="bg-[#0f111a] border border-white/5 p-6 rounded-3xl">
-            <h3 className="font-bold mb-4">Milestones</h3>
-            <div className="grid grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className={`aspect-square rounded-xl flex items-center justify-center border ${i < 3 ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-white/5 border-white/5 text-gray-600'}`}>
-                  <Zap className="w-5 h-5" />
-                </div>
-              ))}
-            </div>
-            <button className="w-full mt-4 text-xs text-gray-500 flex items-center justify-center gap-1 hover:text-white transition-colors">View Achievement Gallery <ChevronRight className="w-3 h-3" /></button>
-          </div>
-        </div>
-      </main>
-
-      <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } } .animate-shimmer { animation: shimmer 2s infinite; }` }} />
-    </div>
-  )
+      </footer>
+    </>
+  );
 }
 
-export default App
-
+export default App;
