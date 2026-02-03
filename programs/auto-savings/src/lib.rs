@@ -263,6 +263,45 @@ pub mod auto_savings {
         msg!("User account reactivated");
         Ok(())
     }
+
+    /// Withdraw collected fees from treasury (authority only)
+    pub fn withdraw_treasury(ctx: Context<WithdrawTreasury>, amount: u64) -> Result<()> {
+        require!(amount > 0, ErrorCode::InvalidAmount);
+
+        let treasury_config = &ctx.accounts.treasury_config;
+
+        // Verify caller is the authority
+        require!(
+            ctx.accounts.authority.key() == treasury_config.authority,
+            ErrorCode::Unauthorized
+        );
+
+        // Check treasury has sufficient balance
+        let treasury_balance = ctx.accounts.treasury.lamports();
+        require!(treasury_balance >= amount, ErrorCode::InsufficientFunds);
+
+        // Create signer seeds for treasury PDA
+        let seeds = &[b"treasury_vault", &[ctx.bumps.treasury]];
+        let signer_seeds = &[&seeds[..]];
+
+        // Transfer from treasury to authority
+        let transfer_ctx = CpiContext::new_with_signer(
+            ctx.accounts.system_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.treasury.to_account_info(),
+                to: ctx.accounts.authority.to_account_info(),
+            },
+            signer_seeds,
+        );
+        transfer(transfer_ctx, amount)?;
+
+        msg!(
+            "Withdrew {} lamports from treasury to authority {}",
+            amount,
+            ctx.accounts.authority.key()
+        );
+        Ok(())
+    }
 }
 
 // ============================================================================
@@ -443,6 +482,29 @@ pub struct ProcessTransfer<'info> {
 
     /// CHECK: Owner validation
     pub owner: AccountInfo<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct WithdrawTreasury<'info> {
+    #[account(
+        mut,
+        seeds = [b"treasury"],
+        bump = treasury_config.bump
+    )]
+    pub treasury_config: Account<'info, TreasuryConfig>,
+
+    /// CHECK: This is the PDA that holds platform fees
+    #[account(
+        mut,
+        seeds = [b"treasury_vault"],
+        bump
+    )]
+    pub treasury: SystemAccount<'info>,
+
+    #[account(mut)]
+    pub authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
 }
