@@ -176,7 +176,7 @@ export const OnboardingScreen = ({ onCreateVault, walletBalance = 0 }) => {
                 {/* Low Balance Warning */}
                 {walletBalance < 0.003 && (
                     <div className="mb-4 p-4 rounded-lg bg-orange-500/10 border border-orange-500/30 animate-in text-left">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 mb-3">
                             <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
                                 <span className="text-orange-500 text-xl">⚠️</span>
                             </div>
@@ -188,6 +188,15 @@ export const OnboardingScreen = ({ onCreateVault, walletBalance = 0 }) => {
                                 </div>
                             </div>
                         </div>
+                        <a
+                            href="https://faucet.solana.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-secondary w-full text-sm py-2 flex items-center justify-center gap-2"
+                        >
+                            <span>🚰</span>
+                            Get Devnet SOL
+                        </a>
                     </div>
                 )}
 

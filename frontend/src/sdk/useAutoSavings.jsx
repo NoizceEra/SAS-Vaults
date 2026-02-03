@@ -101,13 +101,73 @@ export function useAutoSavings() {
 
         try {
             setLoading(true);
+
+            // Check wallet balance first
+            const balance = await client.getWalletBalance();
+            const MIN_BALANCE = 0.003; // Minimum SOL needed for vault creation
+
+            // If on Devnet and balance is too low, try to airdrop
+            if (balance < MIN_BALANCE) {
+                try {
+                    // Check if we're on devnet by looking at the RPC URL
+                    const endpoint = connection.rpcEndpoint;
+                    const isDevnet = endpoint.includes('devnet');
+
+                    if (isDevnet) {
+                        console.log('Low balance detected, requesting airdrop...');
+                        const airdropSignature = await connection.requestAirdrop(
+                            wallet.publicKey,
+                            0.5 * 1e9 // 0.5 SOL
+                        );
+
+                        // Wait for airdrop confirmation
+                        await connection.confirmTransaction(airdropSignature);
+                        console.log('Airdrop successful!');
+
+                        // Wait a bit for balance to update
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    } else {
+                        throw new Error(
+                            `Insufficient SOL balance. You need at least ${MIN_BALANCE} SOL to create a vault. Current balance: ${balance.toFixed(4)} SOL. Please add funds to your wallet.`
+                        );
+                    }
+                } catch (airdropError) {
+                    console.error('Airdrop failed:', airdropError);
+                    // If airdrop fails, throw a helpful error
+                    throw new Error(
+                        `Insufficient SOL balance (${balance.toFixed(4)} SOL). You need at least ${MIN_BALANCE} SOL. ` +
+                        `Please get Devnet SOL from https://faucet.solana.com or switch to a wallet with funds.`
+                    );
+                }
+            }
+
+            // Attempt to initialize user
             const signature = await client.initializeUser(savingsRate);
             console.log('User initialized:', signature);
             await loadUserData();
             return signature;
         } catch (error) {
             console.error('Error initializing user:', error);
-            throw error;
+
+            // Provide user-friendly error messages
+            let userMessage = error.message;
+
+            if (error.message?.includes('User rejected')) {
+                userMessage = 'Transaction was rejected. Please approve the transaction in your wallet to continue.';
+            } else if (error.message?.includes('insufficient')) {
+                userMessage = 'Insufficient SOL balance. Please add funds to your wallet and try again.';
+            } else if (error.message?.includes('blockhash')) {
+                userMessage = 'Network error: Transaction expired. Please try again.';
+            } else if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+                userMessage = 'Network timeout. The Devnet RPC is slow. Please try again in a moment.';
+            } else if (error.message?.includes('429')) {
+                userMessage = 'Rate limit exceeded. Please wait a moment and try again.';
+            } else if (!error.message?.includes('SOL')) {
+                // Only override if it's not already a custom message
+                userMessage = 'Failed to create vault. Please ensure you are connected to Devnet and try again.';
+            }
+
+            throw new Error(userMessage);
         } finally {
             setLoading(false);
         }
