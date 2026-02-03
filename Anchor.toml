@@ -7,7 +7,7 @@ skip-lint = false
 seeds = true
 
 [programs.devnet]
-auto_savings = "8hoCkMSWSvSt9oCokRKsKx8wqvVSWjGNnZTuvRFYhDMR"
+auto_savings = "Gxsu5pFvMMFzjpJ8XRqSmaVteq6FuEXorAoPEEMLjBHj"
 
 [programs.mainnet]
 auto_savings = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"

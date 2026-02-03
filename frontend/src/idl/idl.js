@@ -2,7 +2,8 @@
 export const IDL = {
     "version": "0.1.0",
     "name": "auto_savings",
-    "metadata": { "address": "8hoCkMSWSvSt9oCokRKsKx8wqvVSWjGNnZTuvRFYhDMR" },
+    // ✅ UPDATED: New deployment via Solana Playground
+    "metadata": { "address": "AmDo5E56ankmCRptH2yPdrV4xN2CEDEx4x35fCQdRE4j" },
     "instructions": [
         {
             "name": "initializeUser",

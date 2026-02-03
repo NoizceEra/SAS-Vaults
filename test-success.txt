@@ -1,0 +1,90 @@
+﻿node : (node:19528) [MODULE_T
+YPELESS_PACKAGE_JSON] 
+Warning: Module type of file:
+///C:/Users/vclin_jjufoql/Doc
+uments/SAS/test-vault-creatio
+n.js is not specified and it 
+doesn't parse as CommonJS.
+At line:1 char:1
++ node 
+test-vault-creation.js 2>&1 
+| Out-File -FilePath 
+test-success.tx ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo           
+   : NotSpecified: ((node:1  
+  9528) [M...se as CommonJ   
+ S.:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+Reparsing as ES module 
+because module syntax was 
+detected. This incurs a 
+performance overhead.
+To eliminate this warning, 
+add "type": "module" to C:\Us
+ers\vclin_jjufoql\Documents\S
+AS\package.json.
+(Use `node --trace-warnings 
+...` to show where the 
+warning was created)
+≡ƒÜÇ Testing Vault Creation from CLI
+
+≡ƒôé Loading CLI wallet...
+Γ£à Wallet loaded: 6FvyEfsRbRcvDDaUeu6xKDhiJCYzkZVx1n46QfnwMrsu
+
+≡ƒîÉ Connecting to Devnet...
+Γ£à Connected! Balance: 3.55839656 SOL
+
+ΓÜÖ∩╕Å  Setting up Anchor provider...
+Γ£à Program loaded: 8hoCkMSWSvSt9oCokRKsKx8wqvVSWjGNnZTuvRFYhDMR
+
+≡ƒöæ Deriving PDAs...
+   UserConfig PDA: 9gfFWtuQxJGVQQ7F86YG3yKC9xwyfJ3VgmyLeNvZuv69
+   Vault PDA: 5AsSkr69X1sj2snRjZUiBZkfq4CZxGhRG1yBFbfkBYJQ
+
+≡ƒöì Checking if vault already exists...
+Γ£à No existing vault found - ready to create!
+
+≡ƒô¥ Creating vault with 50% savings rate...
+   This will cost ~0.0023 SOL for rent exemption
+
+
+Γ¥î ERROR: AnchorError 
+occurred. Error Code: 
+DeclaredProgramIdMismatch. 
+Error Number: 4100. Error 
+Message: The declared 
+program id does not match 
+the actual program id.
+
+≡ƒôï Program Logs:
+   Program 8hoCkMSWSvSt9oCokR
+KsKx8wqvVSWjGNnZTuvRFYhDMR 
+invoke [1]
+   Program log: AnchorError 
+occurred. Error Code: 
+DeclaredProgramIdMismatch. 
+Error Number: 4100. Error 
+Message: The declared 
+program id does not match 
+the actual program id.
+   Program 8hoCkMSWSvSt9oCokR
+KsKx8wqvVSWjGNnZTuvRFYhDMR 
+consumed 2379 of 200000 
+compute units
+   Program 8hoCkMSWSvSt9oCokR
+KsKx8wqvVSWjGNnZTuvRFYhDMR 
+failed: custom program 
+error: 0x1004
+
+≡ƒöì Debugging Info:
+   Program ID: 8hoCkMSWSvSt9o
+CokRKsKx8wqvVSWjGNnZTuvRFYhDM
+R
+   Network: Devnet
+   RPC: 
+https://api.devnet.solana.com

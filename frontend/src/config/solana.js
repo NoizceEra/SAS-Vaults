@@ -7,10 +7,9 @@ import { PublicKey } from '@solana/web3.js';
  */
 
 // ✅ DEPLOYED TO DEVNET
-// Program ID: B4Zbm8qH2zLYSt7b3E79NNBCPvG1zQyUDiGWwDXcvG8Z
-// Deployed: Feb 2, 2026
-// Transaction: 5W38MvkcwNdWHDdGPmdZbYue8Gfb1Jxcg2wwX1gEoF7f7iyFKuCJEmYpJrm3GJe4EXy8VTKWBnHXGtirXTiAAYoi
-export const PROGRAM_ID = new PublicKey('B4Zbm8qH2zLYSt7b3E79NNBCPvG1zQyUDiGWwDXcvG8Z');
+// Program ID: 8hoCkMSWSvSt9oCokRKsKx8wqvVSWjGNnZTuvRFYhDMR
+// ✅ UPDATED: New deployment via Solana Playground
+export const PROGRAM_ID = new PublicKey('AmDo5E56ankmCRptH2yPdrV4xN2CEDEx4x35fCQdRE4j');
 
 // Network Configuration
 export const NETWORK = 'devnet'; // 'devnet' | 'mainnet-beta'
