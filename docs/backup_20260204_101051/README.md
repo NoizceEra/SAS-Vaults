@@ -60,28 +60,19 @@ The Solana Auto-Savings Protocol enables users to automatically save a portion o
 
 ## 🚦 Current Status
 
-**Deployment Status:** ✅ **LIVE ON DEVNET**  
+**Deployment Status:** ⏸️ **PAUSED** - Awaiting Devnet SOL  
 **Last Updated:** February 4, 2026
 
 ### Recent Progress
 - ✅ Smart contract swap features implemented (`lib.rs`)
 - ✅ Frontend UI components built (`SwapInterface`, `TokenVaultDashboard`, `AutoSwapConfig`)
 - ✅ Build errors resolved (PDA seeds, borrow checker)
-- ✅ **Successfully deployed to Devnet!**
-
-### Program Information
-**Program ID:** `ALvwuWXCK48qFeTyHxkkSrufhAnP15bh4qkreZSwnhEi`  
-**Network:** Devnet  
-**Explorer:** [View on Solana Explorer](https://explorer.solana.com/address/ALvwuWXCK48qFeTyHxkkSrufhAnP15bh4qkreZSwnhEi?cluster=devnet)
+- ⏸️ Deployment paused due to Devnet faucet rate limits
 
 ### Next Steps
-- [ ] Copy IDL to frontend
-- [ ] Update frontend configuration
-- [ ] Initialize treasury
-- [ ] Test all features
-- [ ] Deploy frontend
+See [`NEXT_STEPS_AFTER_FUNDING.md`](NEXT_STEPS_AFTER_FUNDING.md) for the deployment resumption plan.
 
-See [`docs/swap-feature/DEPLOYMENT_SUCCESS.md`](docs/swap-feature/DEPLOYMENT_SUCCESS.md) for full details.
+**Deployment Wallet:** `GQxe3ynFdVNCEi2yf3LedFnBk3y6C5ep6sXiTei6aF2U` (needs ~3 SOL)
 
 ---
 

@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Load IDL
-const idlPath = path.join(__dirname, '../target/idl/auto_savings.json');
+const idlPath = path.join(__dirname, '../idl/auto_savings.json');
 const idl = JSON.parse(fs.readFileSync(idlPath, 'utf8'));
 
 // Configuration
@@ -30,7 +30,7 @@ const RPC_URL = NETWORK === 'mainnet-beta'
 const PROGRAM_ID = new PublicKey(
     NETWORK === 'mainnet-beta'
         ? 'YOUR_MAINNET_PROGRAM_ID' // Update after Mainnet deployment
-        : 'AmDo5E56ankmCRptH2yPdrV4xN2CEDEx4x35fCQdRE4j' // Current Devnet
+        : 'E723pUhopYoiGxGY3TUJaKodXq5RSf1xt1WHnvYTdM4a' // New Devnet with withdraw_treasury
 );
 
 async function loadAuthority() {

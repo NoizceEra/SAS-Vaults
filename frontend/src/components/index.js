@@ -7,3 +7,8 @@ export { default as TransactionList } from './TransactionList';
 export { default as OnboardingScreen } from './OnboardingScreen';
 export { default as Dashboard } from './Dashboard';
 export { default as DemoModeBanner } from './DemoModeBanner';
+
+// Swap Feature Components
+export { default as SwapInterface } from './SwapInterface';
+export { default as TokenVaultDashboard } from './TokenVaultDashboard';
+export { default as AutoSwapConfig } from './AutoSwapConfig';

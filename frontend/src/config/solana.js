@@ -6,10 +6,10 @@ import { PublicKey } from '@solana/web3.js';
  * Update PROGRAM_ID after deploying the smart contract
  */
 
-// ✅ DEPLOYED TO DEVNET
-// Program ID: 8hoCkMSWSvSt9oCokRKsKx8wqvVSWjGNnZTuvRFYhDMR
-// ✅ UPDATED: New deployment via Solana Playground
-export const PROGRAM_ID = new PublicKey('AmDo5E56ankmCRptH2yPdrV4xN2CEDEx4x35fCQdRE4j');
+// ✅ DEPLOYED TO DEVNET - February 4, 2026
+// Program ID: ALvwuWXCK48qFeTyHxkkSrufhAnP15bh4qkreZSwnhEi
+// ✅ UPDATED: New deployment with swap features via Solana Playground
+export const PROGRAM_ID = new PublicKey('ALvwuWXCK48qFeTyHxkkSrufhAnP15bh4qkreZSwnhEi');
 
 // Network Configuration
 export const NETWORK = 'devnet'; // 'devnet' | 'mainnet-beta'
