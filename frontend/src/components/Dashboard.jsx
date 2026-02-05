@@ -53,12 +53,10 @@ export const Dashboard = ({
                 {/* Header */}
                 <div className="mb-8 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-                            </svg>
+                        <div className="w-10 h-10 flex items-center justify-center">
+                            <img src="/logo.png" alt="Slice Logo" className="w-full h-full object-contain" />
                         </div>
-                        <h1 className="text-2xl font-bold">Auto-Savings</h1>
+                        <h1 className="text-2xl font-bold">Slice Vault</h1>
                     </div>
                 </div>
 

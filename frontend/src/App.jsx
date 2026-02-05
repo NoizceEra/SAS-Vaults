@@ -210,14 +210,12 @@ function App() {
       <header className="border-b border-white/10 bg-primary/50 backdrop-blur-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-              </svg>
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img src="/logo.png" alt="Slice Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">Auto-Savings</h1>
-              <p className="text-xs text-tertiary">Solana Protocol</p>
+              <h1 className="text-xl font-bold">Slice</h1>
+              <p className="text-xs text-tertiary">Auto Savings Protocol on Solana</p>
             </div>
           </div>
 
@@ -308,7 +306,7 @@ function App() {
       {/* Footer */}
       <footer className="border-t border-white/10 mt-16">
         <div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-tertiary">
-          <p>Solana Auto-Savings Protocol v1.0.0</p>
+          <p>Slice by SAS Protocol v1.0.0</p>
           <p className="mt-2">
             <a href="#" className="hover:text-purple-500 transition-colors">Documentation</a>
             {' • '}
