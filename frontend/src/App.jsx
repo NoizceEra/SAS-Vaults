@@ -199,9 +199,9 @@ function App() {
   }
 
   // Show onboarding if no vault exists
-  if (!vault) {
-    return <OnboardingScreen onCreateVault={handleCreateVault} walletBalance={walletBalance} />;
-  }
+  // if (!vault) {
+  //   return <OnboardingScreen onCreateVault={handleCreateVault} walletBalance={walletBalance} />;
+  // }
 
   // Show main dashboard
   return (
@@ -282,7 +282,9 @@ function App() {
       {/* Main Content - Conditional based on active tab */}
       {activeTab === 'vaults' ? (
         <Dashboard
-          vault={vault}
+          vault={vault || { savingsBalance: 0, spendingBalance: 0, savingsRate: 10 }}
+          isInitialized={!!vault}
+          onCreateVault={handleCreateVault}
           walletBalance={walletBalance}
           onDeposit={handleDeposit}
           onWithdraw={handleWithdraw}

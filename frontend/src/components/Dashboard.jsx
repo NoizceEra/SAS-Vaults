@@ -15,21 +15,18 @@ export const Dashboard = ({
     onDeposit,
     onWithdraw,
     onUpdateSavingsRate,
-    transactions = []
+    transactions = [],
+    isInitialized = true,
+    onCreateVault
 }) => {
     const [showDepositModal, setShowDepositModal] = useState(false);
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+    const [initRate, setInitRate] = useState(10); // Local state for uninitialized slider
 
-    if (!vault) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="spinner w-12 h-12 mx-auto mb-4"></div>
-                    <p className="text-secondary">Loading your vault...</p>
-                </div>
-            </div>
-        );
-    }
+    // Removed blocking loading state to allow "View Mode"
+
+    // Use local state if not initialized
+    const currentRate = isInitialized ? vault.savingsRate : initRate;
 
     const totalSavings = (vault.savingsBalance + vault.spendingBalance) / 1e9;
     const savingsBalance = vault.savingsBalance / 1e9;
@@ -38,6 +35,21 @@ export const Dashboard = ({
     return (
         <div className="min-h-screen p-4 md:p-8">
             <div className="max-w-6xl mx-auto">
+                {/* Activation Banner */}
+                {!isInitialized && (
+                    <div className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-500/30 flex flex-col md:flex-row items-center justify-between gap-4 animate-in">
+                        <div>
+                            <h2 className="text-xl font-bold text-white mb-1">Preview Mode</h2>
+                            <p className="text-purple-200">Initialize your savings vault to start saving.</p>
+                        </div>
+                        <button
+                            onClick={() => onCreateVault(currentRate)}
+                            className="px-6 py-3 bg-white text-purple-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-purple-900/20"
+                        >
+                            Activate Account
+                        </button>
+                    </div>
+                )}
                 {/* Header */}
                 <div className="mb-8 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -95,14 +107,16 @@ export const Dashboard = ({
                 {/* Action Buttons */}
                 <div className="flex gap-4 mb-8">
                     <button
-                        className="btn-primary flex-1"
-                        onClick={() => setShowDepositModal(true)}
+                        className={`btn-primary flex-1 ${!isInitialized ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={() => isInitialized && setShowDepositModal(true)}
+                        disabled={!isInitialized}
                     >
                         Deposit
                     </button>
                     <button
-                        className="btn-secondary flex-1"
-                        onClick={() => setShowWithdrawModal(true)}
+                        className={`btn-secondary flex-1 ${!isInitialized ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={() => isInitialized && setShowWithdrawModal(true)}
+                        disabled={!isInitialized}
                     >
                         Withdraw
                     </button>
@@ -111,8 +125,8 @@ export const Dashboard = ({
                 {/* Savings Rate Slider */}
                 <div className="mb-8">
                     <SavingsRateSlider
-                        value={vault.savingsRate}
-                        onUpdate={onUpdateSavingsRate}
+                        value={currentRate}
+                        onUpdate={isInitialized ? onUpdateSavingsRate : setInitRate}
                     />
                 </div>
 
