@@ -54,6 +54,7 @@ export default function SwapInterface({ program, userConfig }) {
   const [currentQuote, setCurrentQuote] = useState(null);
   const [priceImpact, setPriceImpact] = useState(0);
   const [fetchingQuote, setFetchingQuote] = useState(false);
+  const [quoteError, setQuoteError] = useState(null);
 
   // Swap tokens
   const handleSwapDirection = () => {
@@ -61,6 +62,7 @@ export default function SwapInterface({ program, userConfig }) {
     setToToken(fromToken);
     setAmount('');
     setEstimatedOutput('0');
+    setQuoteError(null);
   };
 
   // Fetch real quote from Jupiter when amount changes
@@ -74,6 +76,7 @@ export default function SwapInterface({ program, userConfig }) {
       }
 
       setFetchingQuote(true);
+      setQuoteError(null);
       try {
         // Convert amount to smallest unit (lamports/token decimals)
         const amountInSmallestUnit = Math.floor(
@@ -93,11 +96,13 @@ export default function SwapInterface({ program, userConfig }) {
           const outputAmount = quote.outAmount / Math.pow(10, toToken.decimals);
           setEstimatedOutput(outputAmount.toFixed(toToken.decimals));
           setPriceImpact(quote.priceImpactPct || 0);
+          setQuoteError(null);
         }
       } catch (error) {
         console.error('Failed to fetch quote:', error);
         setEstimatedOutput('0');
         setCurrentQuote(null);
+        setQuoteError('Failed to fetch price. Liquidity may be low on Devnet.');
       } finally {
         setFetchingQuote(false);
       }
@@ -249,6 +254,10 @@ export default function SwapInterface({ program, userConfig }) {
                 <span>Fetching best price...</span>
                 <span className="spinner-small"></span>
               </div>
+            ) : quoteError ? (
+              <div className="detail-row error-message">
+                <span style={{ color: '#ff6b6b' }}>{quoteError}</span>
+              </div>
             ) : (
               <>
                 <div className="detail-row">
@@ -302,18 +311,18 @@ export default function SwapInterface({ program, userConfig }) {
         .swap-container {
           display: flex;
           justify-content: center;
-          padding: 2rem;
-          min-height: 600px;
+          padding: 1rem;
+          min-height: 500px;
         }
 
         .swap-card {
-          background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+          background: linear-gradient(135deg, rgba(20, 20, 30, 0.9) 0%, rgba(30, 30, 45, 0.9) 100%);
           backdrop-filter: blur(20px);
           border: 1px solid rgba(255,255,255,0.1);
           border-radius: 24px;
-          padding: 2rem;
+          padding: 1.5rem;
           width: 100%;
-          max-width: 480px;
+          max-width: 440px;
           box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
@@ -321,11 +330,11 @@ export default function SwapInterface({ program, userConfig }) {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem;
         }
 
         .swap-title {
-          font-size: 1.5rem;
+          font-size: 1.25rem;
           font-weight: 700;
           color: #fff;
           display: flex;
@@ -335,19 +344,14 @@ export default function SwapInterface({ program, userConfig }) {
         }
 
         .settings-btn {
-          background: rgba(255,255,255,0.1);
-          border: 1px solid rgba(255,255,255,0.2);
-          border-radius: 12px;
+          background: transparent;
+          border: none;
           padding: 0.5rem;
-          font-size: 1.2rem;
+          color: rgba(255,255,255,0.5);
           cursor: pointer;
-          transition: all 0.3s ease;
+          transition: all 0.2s;
         }
-
-        .settings-btn:hover {
-          background: rgba(255,255,255,0.2);
-          transform: rotate(90deg);
-        }
+        .settings-btn:hover { color: #fff; transform: rotate(45deg); }
 
         .settings-panel {
           background: rgba(0,0,0,0.2);
@@ -395,31 +399,27 @@ export default function SwapInterface({ program, userConfig }) {
         }
 
         .token-input-container {
-          background: rgba(0,0,0,0.2);
-          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(0,0,0,0.3);
+          border: 1px solid rgba(255,255,255,0.05);
           border-radius: 16px;
           padding: 1rem;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.25rem;
+          transition: border-color 0.2s;
+        }
+        .token-input-container:hover {
+          border-color: rgba(255,255,255,0.1);
         }
 
         .token-input-header {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 0.75rem;
-          font-size: 0.875rem;
-        }
-
-        .label {
-          color: rgba(255,255,255,0.7);
-        }
-
-        .balance {
-          color: rgba(255,255,255,0.5);
+          margin-bottom: 0.5rem;
+          font-size: 0.75rem;
         }
 
         .token-input {
           display: flex;
-          gap: 1rem;
+          justify-content: space-between; /* Input left, Selector right */
           align-items: center;
         }
 
@@ -428,9 +428,11 @@ export default function SwapInterface({ program, userConfig }) {
           background: transparent;
           border: none;
           color: #fff;
-          font-size: 1.5rem;
+          font-size: 1.75rem;
           font-weight: 600;
           outline: none;
+          width: 100%;
+          min-width: 0; /* Prevent overflow */
         }
 
         .amount-input::placeholder {
@@ -440,28 +442,26 @@ export default function SwapInterface({ program, userConfig }) {
         .swap-direction {
           display: flex;
           justify-content: center;
-          margin: -0.75rem 0;
+          margin: -12px 0;
           position: relative;
-          z-index: 1;
+          z-index: 10;
+          height: 24px;
         }
 
         .swap-direction-btn {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border: 4px solid #1a1a2e;
+          background: #1a1b23;
+          border: 4px solid #0f0f15;
           border-radius: 12px;
-          width: 48px;
-          height: 48px;
+          width: 36px;
+          height: 36px;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          transition: all 0.3s ease;
-          color: #fff;
+          color: #667eea;
         }
-
         .swap-direction-btn:hover {
-          transform: rotate(180deg);
-          box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+           background: #2a2b36;
         }
 
         .swap-details {
@@ -488,7 +488,7 @@ export default function SwapInterface({ program, userConfig }) {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           border: none;
           border-radius: 16px;
-          padding: 1.25rem;
+          padding: 1rem;
           font-size: 1.125rem;
           font-weight: 700;
           color: #fff;
@@ -498,6 +498,7 @@ export default function SwapInterface({ program, userConfig }) {
           align-items: center;
           justify-content: center;
           gap: 0.5rem;
+          margin-top: 1rem;
         }
 
         .swap-btn:hover:not(.disabled) {
@@ -634,43 +635,39 @@ function TokenSelector({ selected, tokens, onChange, exclude }) {
 
         .token-select-btn {
           background: rgba(255,255,255,0.1);
-          border: 1px solid rgba(255,255,255,0.2);
-          border-radius: 12px;
-          padding: 0.75rem 1rem;
+          border-radius: 99px;
+          padding: 0.4rem 0.8rem 0.4rem 0.6rem; 
+          border: none;
           display: flex;
           align-items: center;
           gap: 0.5rem;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: background 0.2s;
           color: #fff;
           font-weight: 600;
+          flex-shrink: 0;
         }
-
-        .token-select-btn:hover {
-          background: rgba(255,255,255,0.15);
-        }
+        .token-select-btn:hover { background: rgba(255,255,255,0.2); }
 
         .token-icon {
           font-size: 1.25rem;
         }
 
-        .dropdown-arrow {
-          font-size: 0.75rem;
-          opacity: 0.6;
-        }
+        .token-symbol { font-size: 1.1rem; }
+        .dropdown-arrow { font-size: 0.6rem; opacity: 0.5; }
 
         .token-dropdown {
           position: absolute;
-          top: calc(100% + 0.5rem);
+          top: 100%;
           right: 0;
-          background: rgba(26, 26, 46, 0.98);
-          backdrop-filter: blur(20px);
+          background: #1c1c2a;
           border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 16px;
+          border-radius: 12px;
           padding: 0.5rem;
-          min-width: 200px;
-          box-shadow: 0 12px 32px rgba(0,0,0,0.4);
-          z-index: 10;
+          width: 240px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+          z-index: 100;
+          margin-top: 0.5rem;
         }
 
         .token-option {

@@ -3,100 +3,100 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 
 export default function TokenVaultDashboard({ program, connection }) {
-    const { publicKey } = useWallet();
-    const [vaults, setVaults] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [totalValue, setTotalValue] = useState(0);
+  const { publicKey } = useWallet();
+  const [vaults, setVaults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalValue, setTotalValue] = useState(0);
 
-    useEffect(() => {
-        if (publicKey && program) {
-            loadVaults();
-        }
-    }, [publicKey, program]);
+  useEffect(() => {
+    if (publicKey && program) {
+      loadVaults();
+    }
+  }, [publicKey, program]);
 
-    const loadVaults = async () => {
-        setLoading(true);
-        try {
-            // TODO: Fetch actual vault data from blockchain
-            // For now, using mock data
-            const mockVaults = [
-                {
-                    symbol: 'USDC',
-                    name: 'USD Coin',
-                    icon: '$',
-                    color: '#2775CA',
-                    balance: 0,
-                    value: 0,
-                    change24h: 0,
-                },
-                {
-                    symbol: 'USDT',
-                    name: 'Tether USD',
-                    icon: '₮',
-                    color: '#26A17B',
-                    balance: 0,
-                    value: 0,
-                    change24h: 0,
-                },
-                {
-                    symbol: 'BONK',
-                    name: 'Bonk',
-                    icon: '🐕',
-                    color: '#FF6B35',
-                    balance: 0,
-                    value: 0,
-                    change24h: 0,
-                },
-            ];
+  const loadVaults = async () => {
+    setLoading(true);
+    try {
+      // TODO: Fetch actual vault data from blockchain
+      // For now, using mock data
+      const mockVaults = [
+        {
+          symbol: 'USDC',
+          name: 'USD Coin',
+          icon: '$',
+          color: '#2775CA',
+          balance: 0,
+          value: 0,
+          change24h: 0,
+        },
+        {
+          symbol: 'USDT',
+          name: 'Tether USD',
+          icon: '₮',
+          color: '#26A17B',
+          balance: 0,
+          value: 0,
+          change24h: 0,
+        },
+        {
+          symbol: 'BONK',
+          name: 'Bonk',
+          icon: '🐕',
+          color: '#FF6B35',
+          balance: 0,
+          value: 0,
+          change24h: 0,
+        },
+      ];
 
-            setVaults(mockVaults);
-            setTotalValue(mockVaults.reduce((sum, v) => sum + v.value, 0));
-        } catch (error) {
-            console.error('Error loading vaults:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+      setVaults(mockVaults);
+      setTotalValue(mockVaults.reduce((sum, v) => sum + v.value, 0));
+    } catch (error) {
+      console.error('Error loading vaults:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="vault-dashboard">
-            <div className="dashboard-header">
-                <div className="header-content">
-                    <h2 className="dashboard-title">
-                        <span className="icon">🏦</span>
-                        Token Vaults
-                    </h2>
-                    <button className="refresh-btn" onClick={loadVaults} disabled={loading}>
-                        <span className={`refresh-icon ${loading ? 'spinning' : ''}`}>🔄</span>
-                    </button>
-                </div>
+  return (
+    <div className="vault-dashboard">
+      <div className="dashboard-header">
+        <div className="header-content">
+          <h2 className="dashboard-title">
+            <span className="icon">🍰</span>
+            Slices of Wealth
+          </h2>
+          <button className="refresh-btn" onClick={loadVaults} disabled={loading}>
+            <span className={`refresh-icon ${loading ? 'spinning' : ''}`}>🔄</span>
+          </button>
+        </div>
 
-                <div className="total-value-card">
-                    <span className="total-label">Total Portfolio Value</span>
-                    <span className="total-amount">${totalValue.toFixed(2)}</span>
-                </div>
-            </div>
+        <div className="total-value-card">
+          <span className="total-label">Total Portfolio Value</span>
+          <span className="total-amount">${totalValue.toFixed(2)}</span>
+        </div>
+      </div>
 
-            {loading ? (
-                <div className="loading-state">
-                    <div className="loader"></div>
-                    <p>Loading your vaults...</p>
-                </div>
-            ) : vaults.length === 0 ? (
-                <div className="empty-state">
-                    <span className="empty-icon">📦</span>
-                    <h3>No Token Vaults Yet</h3>
-                    <p>Start by swapping SOL to create your first token vault</p>
-                </div>
-            ) : (
-                <div className="vaults-grid">
-                    {vaults.map(vault => (
-                        <VaultCard key={vault.symbol} vault={vault} />
-                    ))}
-                </div>
-            )}
+      {loading ? (
+        <div className="loading-state">
+          <div className="loader"></div>
+          <p>Loading your vaults...</p>
+        </div>
+      ) : vaults.length === 0 ? (
+        <div className="empty-state">
+          <span className="empty-icon">📦</span>
+          <h3>No Token Vaults Yet</h3>
+          <p>Start by swapping SOL to create your first token vault</p>
+        </div>
+      ) : (
+        <div className="vaults-grid">
+          {vaults.map(vault => (
+            <VaultCard key={vault.symbol} vault={vault} />
+          ))}
+        </div>
+      )}
 
-            <style jsx>{`
+      <style jsx>{`
         .vault-dashboard {
           padding: 2rem;
           max-width: 1200px;
@@ -240,68 +240,68 @@ export default function TokenVaultDashboard({ program, connection }) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }
 
 function VaultCard({ vault }) {
-    const [showActions, setShowActions] = useState(false);
+  const [showActions, setShowActions] = useState(false);
 
-    return (
-        <div className="vault-card">
-            <div className="vault-header">
-                <div className="token-info">
-                    <span className="token-icon" style={{ color: vault.color }}>
-                        {vault.icon}
-                    </span>
-                    <div className="token-details">
-                        <span className="token-symbol">{vault.symbol}</span>
-                        <span className="token-name">{vault.name}</span>
-                    </div>
-                </div>
-                <button
-                    className="actions-btn"
-                    onClick={() => setShowActions(!showActions)}
-                >
-                    ⋮
-                </button>
-            </div>
+  return (
+    <div className="vault-card">
+      <div className="vault-header">
+        <div className="token-info">
+          <span className="token-icon" style={{ color: vault.color }}>
+            {vault.icon}
+          </span>
+          <div className="token-details">
+            <span className="token-symbol">{vault.symbol}</span>
+            <span className="token-name">{vault.name}</span>
+          </div>
+        </div>
+        <button
+          className="actions-btn"
+          onClick={() => setShowActions(!showActions)}
+        >
+          ⋮
+        </button>
+      </div>
 
-            <div className="vault-balance">
-                <span className="balance-label">Balance</span>
-                <span className="balance-amount">
-                    {vault.balance.toLocaleString()} {vault.symbol}
-                </span>
-                <span className="balance-value">${vault.value.toFixed(2)}</span>
-            </div>
+      <div className="vault-balance">
+        <span className="balance-label">Balance</span>
+        <span className="balance-amount">
+          {vault.balance.toLocaleString()} {vault.symbol}
+        </span>
+        <span className="balance-value">${vault.value.toFixed(2)}</span>
+      </div>
 
-            <div className="vault-stats">
-                <div className="stat">
-                    <span className="stat-label">24h Change</span>
-                    <span className={`stat-value ${vault.change24h >= 0 ? 'positive' : 'negative'}`}>
-                        {vault.change24h >= 0 ? '+' : ''}{vault.change24h.toFixed(2)}%
-                    </span>
-                </div>
-            </div>
+      <div className="vault-stats">
+        <div className="stat">
+          <span className="stat-label">24h Change</span>
+          <span className={`stat-value ${vault.change24h >= 0 ? 'positive' : 'negative'}`}>
+            {vault.change24h >= 0 ? '+' : ''}{vault.change24h.toFixed(2)}%
+          </span>
+        </div>
+      </div>
 
-            {showActions && (
-                <div className="actions-menu">
-                    <button className="action-btn">
-                        <span className="action-icon">💸</span>
-                        Withdraw
-                    </button>
-                    <button className="action-btn">
-                        <span className="action-icon">🔄</span>
-                        Swap
-                    </button>
-                    <button className="action-btn">
-                        <span className="action-icon">📊</span>
-                        View History
-                    </button>
-                </div>
-            )}
+      {showActions && (
+        <div className="actions-menu">
+          <button className="action-btn">
+            <span className="action-icon">💸</span>
+            Withdraw
+          </button>
+          <button className="action-btn">
+            <span className="action-icon">🔄</span>
+            Swap
+          </button>
+          <button className="action-btn">
+            <span className="action-icon">📊</span>
+            View History
+          </button>
+        </div>
+      )}
 
-            <style jsx>{`
+      <style jsx>{`
         .vault-card {
           background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
           backdrop-filter: blur(20px);
@@ -456,6 +456,6 @@ function VaultCard({ vault }) {
           font-size: 1.125rem;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }
