@@ -12,3 +12,6 @@ export { default as DemoModeBanner } from './DemoModeBanner';
 export { default as SwapInterface } from './SwapInterface';
 export { default as TokenVaultDashboard } from './TokenVaultDashboard';
 export { default as AutoSwapConfig } from './AutoSwapConfig';
+
+// Landing Page
+export { default as LandingPage } from './LandingPage';

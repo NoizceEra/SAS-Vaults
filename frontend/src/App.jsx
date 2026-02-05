@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useAutoSavings } from './sdk/useAutoSavings';
-import { OnboardingScreen, Dashboard, DemoModeBanner, SwapInterface, TokenVaultDashboard } from './components';
+import { OnboardingScreen, Dashboard, DemoModeBanner, SwapInterface, TokenVaultDashboard, LandingPage } from './components';
 import './index.css';
 
 /**
@@ -25,6 +25,18 @@ function App() {
   const [walletBalance, setWalletBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [activeTab, setActiveTab] = useState('vaults'); // 'vaults' or 'swap'
+  const [showLanding, setShowLanding] = useState(!wallet.connected); // Show landing if not connected
+
+  // Handle wallet connection changes
+  useEffect(() => {
+    if (wallet.connected) {
+      // Optional: Auto-redirect if connected? 
+      // For now, let's keep the user in control or respect the initial state.
+      // Actually, setting showLanding(false) here might be jarring if they just connected.
+      // Let's rely on the "Launch App" button for explicit entry.
+      // But if they are *already* connected on load, the initial state (!wallet.connected) handles it.
+    }
+  }, [wallet.connected]);
 
   // Fetch wallet balance
   useEffect(() => {
@@ -105,6 +117,10 @@ function App() {
   };
 
   // Show loading state only during initial data fetch
+  if (showLanding) {
+    return <LandingPage onLaunchApp={() => setShowLanding(false)} />;
+  }
+
   if (initializing && wallet.connected) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -229,8 +245,8 @@ function App() {
           <button
             onClick={() => setActiveTab('vaults')}
             className={`px-6 py-3 font-semibold transition-all relative ${activeTab === 'vaults'
-                ? 'text-purple-400'
-                : 'text-gray-400 hover:text-white'
+              ? 'text-purple-400'
+              : 'text-gray-400 hover:text-white'
               }`}
           >
             <div className="flex items-center gap-2">
@@ -247,8 +263,8 @@ function App() {
           <button
             onClick={() => setActiveTab('swap')}
             className={`px-6 py-3 font-semibold transition-all relative ${activeTab === 'swap'
-                ? 'text-purple-400'
-                : 'text-gray-400 hover:text-white'
+              ? 'text-purple-400'
+              : 'text-gray-400 hover:text-white'
               }`}
           >
             <div className="flex items-center gap-2">
