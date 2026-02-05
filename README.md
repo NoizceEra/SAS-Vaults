@@ -1,4 +1,5 @@
-# 🛡️ Solana Auto-Savings Protocol (SAS)
+# 🍰 Slice (on Solana)
+> **Powered by the Solana Auto-Savings (SAS) Protocol**
 
 > A decentralized auto-savings protocol on Solana that automatically saves a configurable percentage of every SOL transfer to a secure, non-custodial PDA vault, with optional token swap integration.
 

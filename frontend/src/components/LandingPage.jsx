@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { SavingsRateSlider } from './index'; // Reusing your existing slider style if possible, or building a simplified one
-// We'll build a simplified slider here for the landing page to keep it self-contained and purely visual
 
 const LandingPage = ({ onLaunchApp }) => {
     const [demoAmount, setDemoAmount] = useState(10);
@@ -22,7 +20,7 @@ const LandingPage = ({ onLaunchApp }) => {
                         </svg>
                     </div>
                     <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                        Solana Auto-Savings
+                        Slice
                     </span>
                 </div>
                 <div className="flex items-center gap-6">
@@ -164,7 +162,7 @@ const LandingPage = ({ onLaunchApp }) => {
             <div id="features" className="py-24 bg-slate-800/50 border-t border-slate-800">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl lg:text-4xl font-bold mb-4">Why use Auto-Savings?</h2>
+                        <h2 className="text-3xl lg:text-4xl font-bold mb-4">Why use Slice?</h2>
                         <p className="text-slate-400 max-w-2xl mx-auto">
                             Built on Solana for speed and security. We've simplified the entire process of dollar-cost averaging into your savings.
                         </p>
@@ -223,10 +221,10 @@ const LandingPage = ({ onLaunchApp }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                         </div>
-                        <span className="font-bold text-slate-300">Solana Auto-Savings</span>
+                        <span className="font-bold text-slate-300">Slice</span>
                     </div>
                     <div className="text-sm text-slate-500">
-                        © 2026 SAS Protocol. All rights reserved.
+                        © 2026 Slice (Powered by SAS Protocol). All rights reserved.
                     </div>
                 </div>
             </footer>

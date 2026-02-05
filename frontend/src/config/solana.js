@@ -11,6 +11,12 @@ import { PublicKey } from '@solana/web3.js';
 // ✅ UPDATED: New deployment with swap features via Solana Playground
 export const PROGRAM_ID = new PublicKey('ALvwuWXCK48qFeTyHxkkSrufhAnP15bh4qkreZSwnhEi');
 
+// Branding
+export const APP_NAME = 'Slice';
+export const PROTOCOL_NAME = 'Solana Auto-Savings Protocol';
+export const TAGLINE = 'Automated Savings on Solana';
+
+
 // Network Configuration
 export const NETWORK = 'devnet'; // 'devnet' | 'mainnet-beta'
 export const COMMITMENT = 'confirmed';
