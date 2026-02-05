@@ -139,7 +139,7 @@ function App() {
         <div className="max-w-md w-full text-center animate-in">
           {/* Logo */}
           <div className="mb-8">
-            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center glow-purple p-4">
+            <div className="w-24 h-24 mx-auto flex items-center justify-center">
               <img src="/logo.png" alt="Slice Logo" className="w-full h-full object-contain" />
             </div>
           </div>

@@ -1,4 +1,7 @@
+
 import React, { useState } from 'react';
+import { SavingsRateSlider } from './index'; // Reusing your existing slider style if possible, or building a simplified one
+import PriceTicker from './PriceTicker';
 
 const LandingPage = ({ onLaunchApp }) => {
     const [demoAmount, setDemoAmount] = useState(10);
@@ -11,10 +14,11 @@ const LandingPage = ({ onLaunchApp }) => {
 
     return (
         <div className="min-h-screen bg-slate-900 text-white font-sans selection:bg-purple-500 selection:text-white">
+            <PriceTicker />
             {/* Navigation */}
             <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-900/20 p-2">
+                    <div className="w-10 h-10 flex items-center justify-center">
                         <img src="/logo.png" alt="Slice Logo" className="w-full h-full object-contain" />
                     </div>
                     <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
@@ -156,6 +160,30 @@ const LandingPage = ({ onLaunchApp }) => {
                 </div>
             </div>
 
+            {/* Protocol Stats Bar */}
+            <div className="border-y border-white/5 bg-white/5 backdrop-blur-sm">
+                <div className="max-w-7xl mx-auto px-6 py-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                        <div>
+                            <p className="text-slate-400 text-sm mb-1 uppercase tracking-wider">Total Volume</p>
+                            <p className="text-3xl font-bold text-white">1,240 <span className="text-sm text-purple-400">SOL</span></p>
+                        </div>
+                        <div>
+                            <p className="text-slate-400 text-sm mb-1 uppercase tracking-wider">Active Savers</p>
+                            <p className="text-3xl font-bold text-white">86</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-400 text-sm mb-1 uppercase tracking-wider">Total Saved</p>
+                            <p className="text-3xl font-bold text-white">$142,500+</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-400 text-sm mb-1 uppercase tracking-wider">APY (Avg)</p>
+                            <p className="text-3xl font-bold text-green-400">~0% <span className="text-xs text-slate-500">(Non-Custodial)</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Features Grid */}
             <div id="features" className="py-24 bg-slate-800/50 border-t border-slate-800">
                 <div className="max-w-7xl mx-auto px-6">
@@ -214,7 +242,7 @@ const LandingPage = ({ onLaunchApp }) => {
             <footer className="border-t border-slate-800 py-12">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center p-1.5">
+                        <div className="w-8 h-8 flex items-center justify-center">
                             <img src="/logo.png" alt="Slice Logo" className="w-full h-full object-contain" />
                         </div>
                         <span className="font-bold text-slate-300">Slice</span>
