@@ -4,7 +4,7 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer as TokenTransfer};
 
 // ✅ UPDATED: New deployment with matching IDL
-declare_id!("ALvwuWXCK48qFeTyHxkkSrufhAnP15bh4qkreZSwnhEi");
+declare_id!("Gxsu5pFvMMFzjpJ8XRqSmaVteq6FuEXorAoPEEMLjBHj");
 
 // Platform fee: 0.4% (40 basis points out of 10,000)
 const PLATFORM_FEE_BASIS_POINTS: u64 = 40;

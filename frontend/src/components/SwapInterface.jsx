@@ -2,252 +2,303 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
+import { useJupiterSwap } from '../hooks/useJupiterSwap';
 
 // Token list - will expand this in Phase 2
 const SUPPORTED_TOKENS = [
-    {
-        symbol: 'SOL',
-        name: 'Solana',
-        mint: 'So11111111111111111111111111111111111111112',
-        decimals: 9,
-        icon: '◎',
-        color: '#14F195'
-    },
-    {
-        symbol: 'USDC',
-        name: 'USD Coin',
-        mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        decimals: 6,
-        icon: '$',
-        color: '#2775CA'
-    },
-    {
-        symbol: 'USDT',
-        name: 'Tether USD',
-        mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-        decimals: 6,
-        icon: '₮',
-        color: '#26A17B'
-    },
-    {
-        symbol: 'BONK',
-        name: 'Bonk',
-        mint: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
-        decimals: 5,
-        icon: '🐕',
-        color: '#FF6B35'
-    }
+  {
+    symbol: 'SOL',
+    name: 'Solana',
+    mint: 'So11111111111111111111111111111111111111112',
+    decimals: 9,
+    icon: '◎',
+    color: '#14F195'
+  },
+  {
+    symbol: 'USDC',
+    name: 'USD Coin',
+    mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    decimals: 6,
+    icon: '$',
+    color: '#2775CA'
+  },
+  {
+    symbol: 'USDT',
+    name: 'Tether USD',
+    mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+    decimals: 6,
+    icon: '₮',
+    color: '#26A17B'
+  },
+  {
+    symbol: 'BONK',
+    name: 'Bonk',
+    mint: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
+    decimals: 5,
+    icon: '🐕',
+    color: '#FF6B35'
+  }
 ];
 
 export default function SwapInterface({ program, userConfig }) {
-    const { publicKey } = useWallet();
-    const [fromToken, setFromToken] = useState(SUPPORTED_TOKENS[0]); // SOL
-    const [toToken, setToToken] = useState(SUPPORTED_TOKENS[1]); // USDC
-    const [amount, setAmount] = useState('');
-    const [estimatedOutput, setEstimatedOutput] = useState('0');
-    const [slippage, setSlippage] = useState(0.5);
-    const [loading, setLoading] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
+  const { publicKey } = useWallet();
+  const { getQuote, executeSwap, loading: jupiterLoading, error: jupiterError } = useJupiterSwap();
 
-    // Swap tokens
-    const handleSwapDirection = () => {
-        setFromToken(toToken);
-        setToToken(fromToken);
-        setAmount('');
+  const [fromToken, setFromToken] = useState(SUPPORTED_TOKENS[0]); // SOL
+  const [toToken, setToToken] = useState(SUPPORTED_TOKENS[1]); // USDC
+  const [amount, setAmount] = useState('');
+  const [estimatedOutput, setEstimatedOutput] = useState('0');
+  const [slippage, setSlippage] = useState(0.5);
+  const [loading, setLoading] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [currentQuote, setCurrentQuote] = useState(null);
+  const [priceImpact, setPriceImpact] = useState(0);
+  const [fetchingQuote, setFetchingQuote] = useState(false);
+
+  // Swap tokens
+  const handleSwapDirection = () => {
+    setFromToken(toToken);
+    setToToken(fromToken);
+    setAmount('');
+    setEstimatedOutput('0');
+  };
+
+  // Fetch real quote from Jupiter when amount changes
+  useEffect(() => {
+    const fetchQuote = async () => {
+      if (!amount || parseFloat(amount) <= 0) {
         setEstimatedOutput('0');
+        setCurrentQuote(null);
+        setPriceImpact(0);
+        return;
+      }
+
+      setFetchingQuote(true);
+      try {
+        // Convert amount to smallest unit (lamports/token decimals)
+        const amountInSmallestUnit = Math.floor(
+          parseFloat(amount) * Math.pow(10, fromToken.decimals)
+        );
+
+        const quote = await getQuote(
+          fromToken.mint,
+          toToken.mint,
+          amountInSmallestUnit,
+          slippage * 100 // Convert to basis points
+        );
+
+        if (quote) {
+          setCurrentQuote(quote);
+          // Convert output amount back to human-readable
+          const outputAmount = quote.outAmount / Math.pow(10, toToken.decimals);
+          setEstimatedOutput(outputAmount.toFixed(toToken.decimals));
+          setPriceImpact(quote.priceImpactPct || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch quote:', error);
+        setEstimatedOutput('0');
+        setCurrentQuote(null);
+      } finally {
+        setFetchingQuote(false);
+      }
     };
 
-    // Calculate estimated output (placeholder - will use Jupiter in Phase 2)
-    useEffect(() => {
-        if (amount && parseFloat(amount) > 0) {
-            // Placeholder calculation - will be replaced with Jupiter quote
-            const mockRate = fromToken.symbol === 'SOL' ? 100 : 0.01;
-            const estimated = (parseFloat(amount) * mockRate).toFixed(toToken.decimals);
-            setEstimatedOutput(estimated);
-        } else {
-            setEstimatedOutput('0');
-        }
-    }, [amount, fromToken, toToken]);
+    // Debounce quote fetching
+    const timeoutId = setTimeout(fetchQuote, 500);
+    return () => clearTimeout(timeoutId);
+  }, [amount, fromToken, toToken, slippage, getQuote]);
 
-    const handleSwap = async () => {
-        if (!publicKey || !program) return;
+  const handleSwap = async () => {
+    if (!publicKey) {
+      alert('Please connect your wallet');
+      return;
+    }
 
-        setLoading(true);
-        try {
-            const amountLamports = new BN(parseFloat(amount) * Math.pow(10, fromToken.decimals));
-            const minAmountOut = new BN(parseFloat(estimatedOutput) * (1 - slippage / 100) * Math.pow(10, toToken.decimals));
+    if (!currentQuote) {
+      alert('No quote available. Please enter an amount.');
+      return;
+    }
 
-            // Phase 1: This will prepare the swap (placeholder)
-            // Phase 2: Will execute actual Jupiter swap
-            const tx = await program.methods
-                .swapToToken(amountLamports, minAmountOut)
-                .accounts({
-                    userConfig: userConfig,
-                    tokenMint: new PublicKey(toToken.mint),
-                    user: publicKey,
-                    // ... other accounts
-                })
-                .rpc();
+    setLoading(true);
+    try {
+      // Execute swap using Jupiter
+      const result = await executeSwap(currentQuote);
 
-            console.log('Swap transaction:', tx);
-            alert('Swap prepared! (Jupiter integration pending)');
-        } catch (error) {
-            console.error('Swap error:', error);
-            alert('Swap failed: ' + error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+      console.log('Swap successful!', result);
+      alert(`Swap successful! Transaction: ${result.signature}`);
 
-    return (
-        <div className="swap-container">
-            <div className="swap-card">
-                {/* Header */}
-                <div className="swap-header">
-                    <h2 className="swap-title">
-                        <span className="icon">🔄</span>
-                        Swap Tokens
-                    </h2>
-                    <button
-                        className="settings-btn"
-                        onClick={() => setShowSettings(!showSettings)}
-                    >
-                        ⚙️
-                    </button>
-                </div>
+      // Reset form
+      setAmount('');
+      setEstimatedOutput('0');
+      setCurrentQuote(null);
+    } catch (error) {
+      console.error('Swap error:', error);
+      alert(`Swap failed: ${error.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                {/* Settings Panel */}
-                {showSettings && (
-                    <div className="settings-panel">
-                        <div className="setting-item">
-                            <label>Slippage Tolerance</label>
-                            <div className="slippage-options">
-                                {[0.1, 0.5, 1.0].map(value => (
-                                    <button
-                                        key={value}
-                                        className={`slippage-btn ${slippage === value ? 'active' : ''}`}
-                                        onClick={() => setSlippage(value)}
-                                    >
-                                        {value}%
-                                    </button>
-                                ))}
-                                <input
-                                    type="number"
-                                    className="slippage-input"
-                                    value={slippage}
-                                    onChange={(e) => setSlippage(parseFloat(e.target.value))}
-                                    step="0.1"
-                                    min="0.1"
-                                    max="50"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )}
+  return (
+    <div className="swap-container">
+      <div className="swap-card">
+        {/* Header */}
+        <div className="swap-header">
+          <h2 className="swap-title">
+            <span className="icon">🔄</span>
+            Swap Tokens
+          </h2>
+          <button
+            className="settings-btn"
+            onClick={() => setShowSettings(!showSettings)}
+          >
+            ⚙️
+          </button>
+        </div>
 
-                {/* From Token */}
-                <div className="token-input-container">
-                    <div className="token-input-header">
-                        <span className="label">From</span>
-                        <span className="balance">Balance: 0.00</span>
-                    </div>
-                    <div className="token-input">
-                        <input
-                            type="number"
-                            className="amount-input"
-                            placeholder="0.0"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                        />
-                        <TokenSelector
-                            selected={fromToken}
-                            tokens={SUPPORTED_TOKENS}
-                            onChange={setFromToken}
-                            exclude={toToken}
-                        />
-                    </div>
-                </div>
-
-                {/* Swap Direction Button */}
-                <div className="swap-direction">
-                    <button className="swap-direction-btn" onClick={handleSwapDirection}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M17 14L12 9L7 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                    </button>
-                </div>
-
-                {/* To Token */}
-                <div className="token-input-container">
-                    <div className="token-input-header">
-                        <span className="label">To (estimated)</span>
-                        <span className="balance">Balance: 0.00</span>
-                    </div>
-                    <div className="token-input">
-                        <input
-                            type="text"
-                            className="amount-input"
-                            placeholder="0.0"
-                            value={estimatedOutput}
-                            readOnly
-                        />
-                        <TokenSelector
-                            selected={toToken}
-                            tokens={SUPPORTED_TOKENS}
-                            onChange={setToToken}
-                            exclude={fromToken}
-                        />
-                    </div>
-                </div>
-
-                {/* Swap Details */}
-                {amount && parseFloat(amount) > 0 && (
-                    <div className="swap-details">
-                        <div className="detail-row">
-                            <span>Rate</span>
-                            <span>1 {fromToken.symbol} ≈ {(parseFloat(estimatedOutput) / parseFloat(amount)).toFixed(4)} {toToken.symbol}</span>
-                        </div>
-                        <div className="detail-row">
-                            <span>Platform Fee (0.4%)</span>
-                            <span>{(parseFloat(amount) * 0.004).toFixed(4)} {fromToken.symbol}</span>
-                        </div>
-                        <div className="detail-row">
-                            <span>Minimum Received</span>
-                            <span>{(parseFloat(estimatedOutput) * (1 - slippage / 100)).toFixed(toToken.decimals)} {toToken.symbol}</span>
-                        </div>
-                    </div>
-                )}
-
-                {/* Swap Button */}
-                <button
-                    className={`swap-btn ${loading ? 'loading' : ''} ${!amount || parseFloat(amount) <= 0 ? 'disabled' : ''}`}
-                    onClick={handleSwap}
-                    disabled={!amount || parseFloat(amount) <= 0 || loading}
-                >
-                    {loading ? (
-                        <>
-                            <span className="spinner"></span>
-                            Swapping...
-                        </>
-                    ) : (
-                        <>
-                            <span className="icon">⚡</span>
-                            Swap Tokens
-                        </>
-                    )}
-                </button>
-
-                {/* Phase 2 Notice */}
-                <div className="phase-notice">
-                    <span className="notice-icon">ℹ️</span>
-                    <span className="notice-text">
-                        Jupiter integration coming in Phase 2. Current quotes are estimates.
-                    </span>
-                </div>
+        {/* Settings Panel */}
+        {showSettings && (
+          <div className="settings-panel">
+            <div className="setting-item">
+              <label>Slippage Tolerance</label>
+              <div className="slippage-options">
+                {[0.1, 0.5, 1.0].map(value => (
+                  <button
+                    key={value}
+                    className={`slippage-btn ${slippage === value ? 'active' : ''}`}
+                    onClick={() => setSlippage(value)}
+                  >
+                    {value}%
+                  </button>
+                ))}
+                <input
+                  type="number"
+                  className="slippage-input"
+                  value={slippage}
+                  onChange={(e) => setSlippage(parseFloat(e.target.value))}
+                  step="0.1"
+                  min="0.1"
+                  max="50"
+                />
+              </div>
             </div>
+          </div>
+        )}
 
-            <style jsx>{`
+        {/* From Token */}
+        <div className="token-input-container">
+          <div className="token-input-header">
+            <span className="label">From</span>
+            <span className="balance">Balance: 0.00</span>
+          </div>
+          <div className="token-input">
+            <input
+              type="number"
+              className="amount-input"
+              placeholder="0.0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+            <TokenSelector
+              selected={fromToken}
+              tokens={SUPPORTED_TOKENS}
+              onChange={setFromToken}
+              exclude={toToken}
+            />
+          </div>
+        </div>
+
+        {/* Swap Direction Button */}
+        <div className="swap-direction">
+          <button className="swap-direction-btn" onClick={handleSwapDirection}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M17 14L12 9L7 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        {/* To Token */}
+        <div className="token-input-container">
+          <div className="token-input-header">
+            <span className="label">To (estimated)</span>
+            <span className="balance">Balance: 0.00</span>
+          </div>
+          <div className="token-input">
+            <input
+              type="text"
+              className="amount-input"
+              placeholder="0.0"
+              value={estimatedOutput}
+              readOnly
+            />
+            <TokenSelector
+              selected={toToken}
+              tokens={SUPPORTED_TOKENS}
+              onChange={setToToken}
+              exclude={fromToken}
+            />
+          </div>
+        </div>
+
+        {/* Swap Details */}
+        {amount && parseFloat(amount) > 0 && (
+          <div className="swap-details">
+            {fetchingQuote ? (
+              <div className="detail-row">
+                <span>Fetching best price...</span>
+                <span className="spinner-small"></span>
+              </div>
+            ) : (
+              <>
+                <div className="detail-row">
+                  <span>Rate</span>
+                  <span>1 {fromToken.symbol} ≈ {(parseFloat(estimatedOutput) / parseFloat(amount)).toFixed(4)} {toToken.symbol}</span>
+                </div>
+                {priceImpact > 0 && (
+                  <div className="detail-row">
+                    <span>Price Impact</span>
+                    <span className={priceImpact > 1 ? 'text-warning' : ''}>{priceImpact.toFixed(2)}%</span>
+                  </div>
+                )}
+                <div className="detail-row">
+                  <span>Minimum Received</span>
+                  <span>{(parseFloat(estimatedOutput) * (1 - slippage / 100)).toFixed(toToken.decimals)} {toToken.symbol}</span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Swap Button */}
+        <button
+          className={`swap-btn ${loading ? 'loading' : ''} ${!amount || parseFloat(amount) <= 0 ? 'disabled' : ''}`}
+          onClick={handleSwap}
+          disabled={!amount || parseFloat(amount) <= 0 || loading}
+        >
+          {loading ? (
+            <>
+              <span className="spinner"></span>
+              Swapping...
+            </>
+          ) : (
+            <>
+              <span className="icon">⚡</span>
+              Swap Tokens
+            </>
+          )}
+        </button>
+
+        {/* Jupiter Powered Badge */}
+        <div className="jupiter-badge">
+          <span className="badge-icon">⚡</span>
+          <span className="badge-text">
+            Powered by Jupiter Aggregator
+          </span>
+        </div>
+      </div>
+
+      <style jsx>{`
         .swap-container {
           display: flex;
           justify-content: center;
@@ -476,6 +527,37 @@ export default function SwapInterface({ program, userConfig }) {
           to { transform: rotate(360deg); }
         }
 
+        .spinner-small {
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          display: inline-block;
+        }
+
+        .text-warning {
+          color: #ffc107;
+        }
+
+        .jupiter-badge {
+          background: linear-gradient(135deg, rgba(199, 242, 132, 0.1) 0%, rgba(0, 184, 169, 0.1) 100%);
+          border: 1px solid rgba(199, 242, 132, 0.3);
+          border-radius: 12px;
+          padding: 0.75rem;
+          margin-top: 1rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          color: #c7f284;
+        }
+
+        .badge-icon {
+          font-size: 1.2rem;
+        }
+
         .phase-notice {
           background: rgba(255, 193, 7, 0.1);
           border: 1px solid rgba(255, 193, 7, 0.3);
@@ -499,53 +581,53 @@ export default function SwapInterface({ program, userConfig }) {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }
 
 // Token Selector Component
 function TokenSelector({ selected, tokens, onChange, exclude }) {
-    const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-    const availableTokens = tokens.filter(t => t.symbol !== exclude?.symbol);
+  const availableTokens = tokens.filter(t => t.symbol !== exclude?.symbol);
 
-    return (
-        <div className="token-selector">
+  return (
+    <div className="token-selector">
+      <button
+        className="token-select-btn"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="token-icon" style={{ color: selected.color }}>
+          {selected.icon}
+        </span>
+        <span className="token-symbol">{selected.symbol}</span>
+        <span className="dropdown-arrow">▼</span>
+      </button>
+
+      {isOpen && (
+        <div className="token-dropdown">
+          {availableTokens.map(token => (
             <button
-                className="token-select-btn"
-                onClick={() => setIsOpen(!isOpen)}
+              key={token.symbol}
+              className="token-option"
+              onClick={() => {
+                onChange(token);
+                setIsOpen(false);
+              }}
             >
-                <span className="token-icon" style={{ color: selected.color }}>
-                    {selected.icon}
-                </span>
-                <span className="token-symbol">{selected.symbol}</span>
-                <span className="dropdown-arrow">▼</span>
+              <span className="token-icon" style={{ color: token.color }}>
+                {token.icon}
+              </span>
+              <div className="token-info">
+                <span className="token-symbol">{token.symbol}</span>
+                <span className="token-name">{token.name}</span>
+              </div>
             </button>
+          ))}
+        </div>
+      )}
 
-            {isOpen && (
-                <div className="token-dropdown">
-                    {availableTokens.map(token => (
-                        <button
-                            key={token.symbol}
-                            className="token-option"
-                            onClick={() => {
-                                onChange(token);
-                                setIsOpen(false);
-                            }}
-                        >
-                            <span className="token-icon" style={{ color: token.color }}>
-                                {token.icon}
-                            </span>
-                            <div className="token-info">
-                                <span className="token-symbol">{token.symbol}</span>
-                                <span className="token-name">{token.name}</span>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-            )}
-
-            <style jsx>{`
+      <style jsx>{`
         .token-selector {
           position: relative;
         }
@@ -624,6 +706,6 @@ function TokenSelector({ selected, tokens, onChange, exclude }) {
           color: rgba(255,255,255,0.6);
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }
