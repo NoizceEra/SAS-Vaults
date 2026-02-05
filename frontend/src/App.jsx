@@ -139,16 +139,14 @@ function App() {
         <div className="max-w-md w-full text-center animate-in">
           {/* Logo */}
           <div className="mb-8">
-            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center glow-purple">
-              <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-              </svg>
+            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center glow-purple p-4">
+              <img src="/logo.png" alt="Slice Logo" className="w-full h-full object-contain" />
             </div>
           </div>
 
           {/* Title */}
           <h1 className="text-4xl font-bold mb-4 text-gradient">
-            Solana Auto-Savings
+            Slice
           </h1>
           <p className="text-secondary mb-8 text-lg">
             Save automatically with every transaction

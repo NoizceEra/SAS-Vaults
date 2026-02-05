@@ -14,10 +14,8 @@ const LandingPage = ({ onLaunchApp }) => {
             {/* Navigation */}
             <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-900/20">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-900/20 p-2">
+                        <img src="/logo.png" alt="Slice Logo" className="w-full h-full object-contain" />
                     </div>
                     <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
                         Slice
@@ -216,15 +214,20 @@ const LandingPage = ({ onLaunchApp }) => {
             <footer className="border-t border-slate-800 py-12">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center p-1.5">
+                            <img src="/logo.png" alt="Slice Logo" className="w-full h-full object-contain" />
                         </div>
                         <span className="font-bold text-slate-300">Slice</span>
                     </div>
-                    <div className="text-sm text-slate-500">
-                        © 2026 Slice (Powered by SAS Protocol). All rights reserved.
+                    <div className="flex gap-6 items-center">
+                        <a href="https://x.com/SliceProtocol" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                            </svg>
+                        </a>
+                        <div className="text-sm text-slate-500">
+                            © 2026 Slice (Powered by SAS Protocol). All rights reserved.
+                        </div>
                     </div>
                 </div>
             </footer>
