@@ -1,0 +1,29 @@
+﻿anchor : thread 'main' 
+panicked at sdk\cargo-build-s
+bf\src/main.rs:144:10:
+At line:1 char:24
++ ... _BACKTRACE=1; anchor 
+build -p auto_savings 
+--ignore-keys 2>&1 | Out-F 
+...
++                   ~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (thread   
+  'main' p...main.rs:144:1   
+ 0::String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+called `Result::unwrap()` on 
+an `Err` value: Os { code: 
+3, kind: NotFound, message: 
+"The system cannot find the 
+path specified." }
+stack backtrace:
+note: Some details are 
+omitted, run with 
+`RUST_BACKTRACE=full` for a 
+verbose backtrace.

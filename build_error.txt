@@ -1,0 +1,29 @@
+﻿anchor : Error: Program ID 
+mismatch detected for 
+program 'auto_savings':
+At line:1 char:1
++ anchor build -p 
+auto_savings 2>&1 | Out-File 
+-Encoding utf8 build_err ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Error:   
+  Program ...'auto_savings   
+ '::String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+  Keypair file has: 8hoCkMSWS
+vSt9oCokRKsKx8wqvVSWjGNnZTuvR
+FYhDMR
+  Source code has:  Gxsu5pFvM
+MFzjpJ8XRqSmaVteq6FuEXorAoPEE
+MLjBHj
+
+Please run 'anchor keys 
+sync' to update the program 
+ID in your source code or 
+use the '--ignore-keys' flag 
+to skip this check.

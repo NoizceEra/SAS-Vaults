@@ -45,6 +45,16 @@ yarn-error.log*
 id.json
 deploy-keypair.json
 
+# Credentials (CRITICAL: Never commit sensitive data!)
+.credentials
+.credentials.*
+!.credentials.template
+credentials.json
+config/credentials.json
+secrets/
+*.pem
+*.key
+
 # Allow essential JSON files
 !package.json
 !package-lock.json

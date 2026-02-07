@@ -268,7 +268,7 @@ function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
               </svg>
               <span>Token Swap</span>
-              <span className="px-2 py-0.5 text-xs bg-purple-500/20 text-purple-400 rounded-full">New</span>
+              <span className="px-2 py-0.5 text-xs bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded-full">Coming Soon!</span>
             </div>
             {activeTab === 'swap' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500" />
@@ -290,15 +290,33 @@ function App() {
           transactions={transactions}
         />
       ) : (
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Token Vaults Overview */}
-          <div className="mb-8">
-            <TokenVaultDashboard />
+        <div className="max-w-7xl mx-auto px-4 py-16 relative min-h-[600px] flex items-center justify-center border border-white/5 rounded-2xl bg-white/5 backdrop-blur-sm overflow-hidden">
+          {/* Background "Ghost" UI - Visual placeholder only */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none flex flex-col items-center gap-8 p-8 grayscale filter blur-sm select-none">
+            <div className="w-full h-40 bg-white/20 rounded-xl"></div>
+            <div className="flex gap-8 w-full">
+              <div className="flex-1 h-96 bg-white/20 rounded-xl"></div>
+              <div className="w-96 h-96 bg-white/20 rounded-xl"></div>
+            </div>
           </div>
 
-          {/* Swap Interface */}
-          <div className="mt-8">
-            <SwapInterface />
+          {/* Overlay Message */}
+          <div className="relative z-10 text-center p-12 bg-black/80 rounded-2xl border border-purple-500/30 backdrop-blur-md shadow-2xl max-w-lg mx-auto transform hover:scale-105 transition-transform duration-500">
+            <div className="w-20 h-20 mx-auto bg-purple-500/20 rounded-full flex items-center justify-center mb-6">
+              <span className="text-4xl">🚧</span>
+            </div>
+            <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+              In Development
+            </h2>
+            <p className="text-gray-400 mb-8 text-lg">
+              We're integrating Jupiter Swap to bring you the best rates for your savings. This feature will be available in the next update.
+            </p>
+            <button
+              onClick={() => setActiveTab('vaults')}
+              className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-purple-500/25"
+            >
+              Back to Dashboard
+            </button>
           </div>
         </div>
       )}

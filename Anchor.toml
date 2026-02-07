@@ -1,12 +1,15 @@
 [toolchain]
-anchor_version = "0.32.1"
+anchor_version = "0.30.1"
 
 [features]
 resolution = true
 skip-lint = false
 
 [programs.devnet]
-auto_savings = "Gxsu5pFvMMFzjpJ8XRqSmaVteq6FuEXorAoPEEMLjBHj"
+auto_savings = "Gy7UQGE8yjuVSswfL7hipUstrwNgwJrwvbv2KQsk6wpD"
+
+[programs.localnet]
+auto_savings = "Gy7UQGE8yjuVSswfL7hipUstrwNgwJrwvbv2KQsk6wpD"
 
 [programs.mainnet]
 auto_savings = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
