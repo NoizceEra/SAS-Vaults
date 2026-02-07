@@ -4,11 +4,9 @@ Since our local Windows environment has build issues, we are using **GitHub Acti
 
 ## Phase 1: Build the Program (Cloud)
 
-1.  **Commit and Push** your changes to GitHub:
+1.  **Commit and Push** your changes to GitHub (I already did this for you):
     ```bash
-    git add .
-    git commit -m "feat: complete multi-account allocation & ui updates"
-    git push origin main
+    git push origin master
     ```
 
 2.  **Wait for the Build:**
@@ -19,7 +17,9 @@ Since our local Windows environment has build issues, we are using **GitHub Acti
 3.  **Download Artifacts:**
     - Once finished, scroll down to the **Artifacts** section at the bottom of the workflow run page.
     - Download `program-artifacts.zip`.
-    - Extract this zip file into your project folder: `C:\Users\vclin_jjufoql\Documents\SAS\target\artifact_download`.
+    - Extract this zip file into: `c:\Users\vclin_jjufoql\Documents\SAS\target\artifact_download`.
+
+---
 
 ## Phase 2: Deploy to Devnet (WSL)
 
@@ -29,24 +29,23 @@ Since our local Windows environment has build issues, we are using **GitHub Acti
     cd /mnt/c/Users/vclin_jjufoql/Documents/SAS
     ```
 
-2.  **Prepare the Keypair:**
-    Ensure you have your deployment wallet keypair ready (e.g., `~/.config/solana/id.json` or create a new one).
+2.  **Ensure Devnet Funds:**
     ```bash
     solana config set --url devnet
-    solana airdrop 2  # Get devnet SOL for deployment fees
+    solana airdrop 2
     ```
 
 3.  **Deploy the Program:**
-    Use the downloaded `.so` file to deploy.
+    Use your local keypair to deploy the compiled binary from GitHub:
     ```bash
-    # Navigate to where you extracted the artifact
-    cd target/artifact_download/deploy
-
-    # Deploy!
-    solana program deploy auto_savings.so
+    solana program deploy \
+      --program-id target/deploy/auto_savings-keypair.json \
+      target/artifact_download/deploy/auto_savings.so
     ```
 
-    *Note the Program ID output by this command! It should match `Gy7UQGE8yjuVSswfL7hipUstrwNgwJrwvbv2KQsk6wpD`. If it's different, we'll update it later.*
+    **Program ID:** `8AZGuEtnmaqT97sMeF2zUAnv5J89iXCBVPnxw5fULzoS`
+
+---
 
 ## Phase 3: Update Frontend & Test
 
@@ -66,11 +65,5 @@ Since our local Windows environment has build issues, we are using **GitHub Acti
     - [ ] Connect Wallet (Devnet)
     - [ ] Create Vault (Initialize)
     - [ ] Deposit SOL
-    - [ ] Verify Dashboard Balance updates
-    - [ ] Test Allocation Creation (e.g., "Savings 20%")
-    - [ ] Deposit again -> verify allocation split
-    - [ ] Withdraw from Allocation
-
-## Troubleshooting
-- If deployment fails with "insufficient funds", run `solana airdrop 2` again.
-- If Program ID mismatch, update `Anchor.toml` and frontend config with the new ID.
+    - [ ] Create Allocation (e.g., "Savings 20%")
+    - [ ] Verify Dashboard updates

@@ -26,8 +26,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID || 'YOUR_MAINNET_PROGRAM_ID');
-const RPC_URL = process.env.RPC_URL || clusterApiUrl('mainnet-beta');
+const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID || '8AZGuEtnmaqT97sMeF2zUAnv5J89iXCBVPnxw5fULzoS');
+const RPC_URL = process.env.RPC_URL || clusterApiUrl('devnet');
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -72,7 +72,7 @@ console.log('━'.repeat(60));
 // Send Discord alert
 async function sendDiscordAlert(title, message, color = 0xFF0000) {
     if (!DISCORD_WEBHOOK_URL) return;
-    
+
     try {
         const response = await fetch(DISCORD_WEBHOOK_URL, {
             method: 'POST',
@@ -87,7 +87,7 @@ async function sendDiscordAlert(title, message, color = 0xFF0000) {
                 }]
             })
         });
-        
+
         if (!response.ok) {
             console.error('Discord webhook failed:', await response.text());
         }
@@ -99,7 +99,7 @@ async function sendDiscordAlert(title, message, color = 0xFF0000) {
 // Send Telegram alert
 async function sendTelegramAlert(message) {
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
-    
+
     try {
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
         const response = await fetch(url, {
@@ -111,7 +111,7 @@ async function sendTelegramAlert(message) {
                 parse_mode: 'Markdown'
             })
         });
-        
+
         if (!response.ok) {
             console.error('Telegram alert failed:', await response.text());
         }
@@ -125,10 +125,10 @@ async function sendAlert(title, message, severity = 'error') {
     const timestamp = new Date().toISOString();
     console.log(`\n[${timestamp}] 🚨 ALERT: ${title}`);
     console.log(message);
-    
-    const color = severity === 'error' ? 0xFF0000 : 
-                  severity === 'warning' ? 0xFFA500 : 0x00FF00;
-    
+
+    const color = severity === 'error' ? 0xFF0000 :
+        severity === 'warning' ? 0xFFA500 : 0x00FF00;
+
     await Promise.all([
         sendDiscordAlert(title, message, color),
         sendTelegramAlert(`*${title}*\n${message}`)
@@ -140,14 +140,14 @@ async function checkTreasuryBalance() {
     try {
         const balance = await connection.getBalance(treasuryVault);
         const balanceSOL = balance / 1e9;
-        
+
         if (balance !== treasuryBalance) {
             const change = (balance - treasuryBalance) / 1e9;
             console.log(`💰 Treasury Balance: ${balanceSOL.toFixed(4)} SOL (${change >= 0 ? '+' : ''}${change.toFixed(4)} SOL)`);
-            
+
             treasuryBalance = balance;
         }
-        
+
         // Alert if treasury is low
         if (balance < TREASURY_LOW_THRESHOLD) {
             await sendAlert(
@@ -156,7 +156,7 @@ async function checkTreasuryBalance() {
                 'warning'
             );
         }
-        
+
         return balance;
     } catch (error) {
         console.error('Error checking treasury balance:', error);
@@ -170,42 +170,42 @@ async function monitorTransactions() {
         const signatures = await connection.getSignaturesForAddress(PROGRAM_ID, {
             limit: 10
         });
-        
+
         if (signatures.length === 0) return;
-        
+
         // Check for new transactions
         const newTransactions = [];
         for (const sig of signatures) {
             if (lastSignature && sig.signature === lastSignature) break;
             newTransactions.push(sig);
         }
-        
+
         if (newTransactions.length > 0) {
             lastSignature = signatures[0].signature;
-            
+
             // Process each transaction
             for (const sig of newTransactions.reverse()) {
                 const tx = await connection.getTransaction(sig.signature, {
                     maxSupportedTransactionVersion: 0
                 });
-                
+
                 if (!tx) continue;
-                
+
                 const status = sig.err ? '❌ FAILED' : '✅ SUCCESS';
                 const timestamp = new Date(sig.blockTime * 1000).toISOString();
-                
+
                 console.log(`\n[${timestamp}] ${status}`);
                 console.log(`Signature: ${sig.signature}`);
                 console.log(`Slot: ${sig.slot}`);
-                
+
                 if (sig.err) {
                     errorCount++;
                     const errorMsg = JSON.stringify(sig.err);
                     console.log(`Error: ${errorMsg}`);
-                    
+
                     // Log error to file
                     logError(sig.signature, errorMsg, timestamp);
-                    
+
                     // Alert on transaction failure
                     await sendAlert(
                         'Transaction Failed',
@@ -215,13 +215,13 @@ async function monitorTransactions() {
                 } else {
                     successCount++;
                 }
-                
+
                 // Parse transaction for specific events
                 if (tx.meta && tx.meta.logMessages) {
                     parseTransactionLogs(tx.meta.logMessages, sig.signature);
                 }
             }
-            
+
             // Check error rate
             const totalTx = errorCount + successCount;
             if (totalTx >= 10) {
@@ -247,7 +247,7 @@ function parseTransactionLogs(logs, signature) {
     let withdrawAmount = null;
     let swapAmount = null;
     let feeCollected = null;
-    
+
     for (const log of logs) {
         // Look for custom program logs
         if (log.includes('Deposit:')) {
@@ -267,7 +267,7 @@ function parseTransactionLogs(logs, signature) {
             if (match) feeCollected = parseInt(match[1]) / 1e9;
         }
     }
-    
+
     if (depositAmount) console.log(`  💰 Deposit: ${depositAmount.toFixed(4)} SOL`);
     if (withdrawAmount) console.log(`  💸 Withdraw: ${withdrawAmount.toFixed(4)} SOL`);
     if (swapAmount) console.log(`  🔄 Swap: ${swapAmount.toFixed(4)} SOL`);
@@ -280,10 +280,10 @@ function logError(signature, error, timestamp) {
     if (!fs.existsSync(logDir)) {
         fs.mkdirSync(logDir, { recursive: true });
     }
-    
+
     const logFile = path.join(logDir, 'mainnet-errors.log');
     const logEntry = `[${timestamp}] ${signature}: ${error}\n`;
-    
+
     fs.appendFileSync(logFile, logEntry);
 }
 
@@ -293,7 +293,7 @@ function printStatus() {
     const hours = Math.floor(uptime / 3600);
     const minutes = Math.floor((uptime % 3600) / 60);
     const seconds = uptime % 60;
-    
+
     console.log('\n' + '═'.repeat(60));
     console.log('📊 STATUS SUMMARY');
     console.log('═'.repeat(60));
@@ -319,23 +319,23 @@ async function monitor() {
 (async () => {
     console.log('\n✅ Monitor initialized successfully!');
     console.log('🔄 Starting monitoring loop...\n');
-    
+
     // Send startup notification
     await sendAlert(
         'Monitor Started',
         `Monitoring started for program: ${PROGRAM_ID.toString()}\nRPC: ${RPC_URL}`,
         'success'
     );
-    
+
     // Initial check
     await monitor();
-    
+
     // Print status every 5 minutes
     setInterval(printStatus, 5 * 60 * 1000);
-    
+
     // Main monitoring loop
     setInterval(monitor, CHECK_INTERVAL);
-    
+
     console.log('✅ Monitor is running! Press Ctrl+C to stop.\n');
 })();
 

@@ -12,7 +12,7 @@ auto_savings = "8AZGuEtnmaqT97sMeF2zUAnv5J89iXCBVPnxw5fULzoS"
 auto_savings = "8AZGuEtnmaqT97sMeF2zUAnv5J89iXCBVPnxw5fULzoS"
 
 [programs.mainnet]
-auto_savings = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+auto_savings = "BWK8cgDEBjUk4h6Cn1PSSs673BTJbNNncAHrwF9m32NYA"
 
 [registry]
 url = "https://api.apr.dev"
