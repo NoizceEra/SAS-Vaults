@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-auto_savings = "Gy7UQGE8yjuVSswfL7hipUstrwNgwJrwvbv2KQsk6wpD"
+auto_savings = "8AZGuEtnmaqT97sMeF2zUAnv5J89iXCBVPnxw5fULzoS"
 
 [programs.localnet]
-auto_savings = "Gy7UQGE8yjuVSswfL7hipUstrwNgwJrwvbv2KQsk6wpD"
+auto_savings = "8AZGuEtnmaqT97sMeF2zUAnv5J89iXCBVPnxw5fULzoS"
 
 [programs.mainnet]
 auto_savings = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"

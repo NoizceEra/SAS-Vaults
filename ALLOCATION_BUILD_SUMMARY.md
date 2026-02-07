@@ -68,13 +68,8 @@ We have switched to a cloud-based build pipeline which is far more reliable.
    - Runs tests
    - Uploads the compiled `.so` binary as an artifact
 
-**Next Step:**
-Push your changes to GitHub to trigger the build!
-```bash
-git add .
-git commit -m "feat: complete multi-account allocation implementation"
-git push
-```
+**Status:** ✅ Build triggered via commit `a0d491e`
+**Action Required:** Wait for build to complete in GitHub Actions tab.
 
 ---
 

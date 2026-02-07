@@ -4,7 +4,7 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer as TokenTransfer};
 
 // ✅ UPDATED: New deployment with matching IDL
-declare_id!("Gy7UQGE8yjuVSswfL7hipUstrwNgwJrwvbv2KQsk6wpD");
+declare_id!("8AZGuEtnmaqT97sMeF2zUAnv5J89iXCBVPnxw5fULzoS");
 
 // Platform fee: 0.4% (40 basis points out of 10,000)
 const PLATFORM_FEE_BASIS_POINTS: u64 = 40;
@@ -650,16 +650,13 @@ pub mod auto_savings {
     }
 
     /// Deposit SOL and track allocation splits (simplified - uses single vault)
-    pub fn deposit_with_allocation(
-        ctx: Context<DepositWithAllocation>,
-        amount: u64,
-    ) -> Result<()> {
+    pub fn deposit_with_allocation(ctx: Context<DepositWithAllocation>, amount: u64) -> Result<()> {
         require!(amount > 0, ErrorCode::InvalidAmount);
 
         let allocation_config = &mut ctx.accounts.allocation_config;
         let user_config = &mut ctx.accounts.user_config;
         let treasury_config = &mut ctx.accounts.treasury_config;
-        
+
         // Calculate platform fee (0.4%)
         let platform_fee = (amount as u128)
             .checked_mul(PLATFORM_FEE_BASIS_POINTS as u128)
@@ -706,7 +703,7 @@ pub mod auto_savings {
                     .ok_or(ErrorCode::Overflow)?
                     .checked_div(100)
                     .ok_or(ErrorCode::Overflow)? as u64;
-                
+
                 allocation.total_saved = allocation
                     .total_saved
                     .checked_add(allocation_amount)
@@ -726,13 +723,17 @@ pub mod auto_savings {
             .total_saved
             .checked_add(amount_after_fee)
             .ok_or(ErrorCode::Overflow)?;
-        
+
         user_config.transaction_count = user_config
             .transaction_count
             .checked_add(1)
             .ok_or(ErrorCode::Overflow)?;
 
-        msg!("Deposited {} SOL with allocation tracking (fee: {} SOL)", amount_after_fee, platform_fee);
+        msg!(
+            "Deposited {} SOL with allocation tracking (fee: {} SOL)",
+            amount_after_fee,
+            platform_fee
+        );
         Ok(())
     }
 
@@ -746,7 +747,7 @@ pub mod auto_savings {
 
         let allocation_config = &mut ctx.accounts.allocation_config;
         let user_config = &mut ctx.accounts.user_config;
-        
+
         // Validate index
         require!(
             (index as usize) < allocation_config.allocations.len(),
@@ -761,7 +762,7 @@ pub mod auto_savings {
             .total_saved
             .checked_sub(allocation.total_withdrawn)
             .ok_or(ErrorCode::InsufficientFunds)?;
-        
+
         require!(available >= amount, ErrorCode::InsufficientFunds);
 
         // Check main vault has sufficient balance
