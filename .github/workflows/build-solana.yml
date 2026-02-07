@@ -17,12 +17,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build with Backpack
-        uses: backpackapp-xyz/build@v0.1.0
-        with:
-          network: mainnet
-          anchor-version: ${{ env.ANCHOR_VERSION }}
-          solana-version: ${{ env.SOLANA_CLI_VERSION }}
+      - name: Build with Anchor Docker
+        run: |
+          docker run --rm \
+            -v $(pwd):/workdir \
+            -w /workdir \
+            coralxyz/anchor:${{ env.ANCHOR_VERSION }} \
+            anchor build
 
       - name: Run Tests
         run: anchor test --skip-deploy
