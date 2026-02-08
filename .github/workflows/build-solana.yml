@@ -17,13 +17,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build with Anchor Docker
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.82.0
+          components: rustfmt, clippy
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Solana CLI
         run: |
-          docker run --rm \
-            -v $(pwd):/workdir \
-            -w /workdir \
-            coralxyz/anchor:${{ env.ANCHOR_VERSION }} \
-            anchor build
+          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_CLI_VERSION }}/install)"
+          echo "/home/runner/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor CLI
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
+          avm install ${{ env.ANCHOR_VERSION }}
+          avm use ${{ env.ANCHOR_VERSION }}
+
+      - name: Build Program
+        run: anchor build
 
       - name: Run Tests
         run: anchor test --skip-deploy
