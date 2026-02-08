@@ -23,7 +23,7 @@ jobs:
             -v $(pwd):/workdir \
             -w /workdir \
             backpackapp/build:v0.30.1 \
-            bash -c "rustc --version && rustup toolchain install 1.78.0 && rustup default 1.78.0 && rustc --version && anchor build && chown -R $(id -u):$(id -g) target"
+            bash -c "rustc --version && rustup toolchain install 1.78.0 && rustup default 1.78.0 && rustc --version && cd programs/auto-savings && cargo update -p wit-bindgen --precise 0.50.0 && cd - && anchor build && chown -R $(id -u):$(id -g) target"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
