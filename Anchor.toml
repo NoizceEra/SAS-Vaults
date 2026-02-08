@@ -6,13 +6,13 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-auto_savings = "8AZGuEtnmaqT97sMeF2zUAnv5J89iXCBVPnxw5fULzoS"
+auto_savings = "V1YHSMC6Utp5smG67DL1vvPstcsAik6YSCFSJkfN79q"
 
 [programs.localnet]
 auto_savings = "8AZGuEtnmaqT97sMeF2zUAnv5J89iXCBVPnxw5fULzoS"
 
 [programs.mainnet]
-auto_savings = "BWK8cgDEBjUk4h6Cn1PSSs673BTJbNNncAHrwF9m32NYA"
+auto_savings = "V1YHSMC6Utp5smG67DL1vvPstcsAik6YSCFSJkfN79q"
 
 [registry]
 url = "https://api.apr.dev"

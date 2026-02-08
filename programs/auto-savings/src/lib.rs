@@ -4,11 +4,17 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer as TokenTransfer};
 
 // ✅ UPDATED: New deployment with matching IDL
-declare_id!("BWK8cgDEBjUk4h6Cn1PSSs673BTJbNNncAHrwF9m32NYA");
+declare_id!("V1YHSMC6Utp5smG67DL1vvPstcsAik6YSCFSJkfN79q");
 
 // Platform fee: 0.4% (40 basis points out of 10,000)
 const PLATFORM_FEE_BASIS_POINTS: u64 = 40;
 const BASIS_POINTS_DIVISOR: u64 = 10000;
+
+// ============================================================================
+// MINIMUM VIABLE DEPLOYMENT - SAFETY LIMITS
+// ============================================================================
+const TVL_CAP_LAMPORTS: u64 = 10_000_000_000; // 10 SOL cap
+const SWAPS_ENABLED: bool = false; // SWAPS COMPLETELY DISABLED
 
 #[program]
 pub mod auto_savings {
@@ -21,7 +27,12 @@ pub mod auto_savings {
         treasury_config.total_fees_collected = 0;
         treasury_config.bump = ctx.bumps.treasury_config;
 
-        msg!("Platform treasury initialized");
+        // Initialize safety features
+        treasury_config.is_paused = false;
+        treasury_config.total_tvl = 0;
+        treasury_config.tvl_cap = TVL_CAP_LAMPORTS;
+
+        msg!("Platform treasury initialized with 10 SOL TVL cap");
         Ok(())
     }
 
@@ -69,6 +80,20 @@ pub mod auto_savings {
 
         let user_config = &mut ctx.accounts.user_config;
         let treasury_config = &mut ctx.accounts.treasury_config;
+
+        // SAFETY: Check if protocol is paused
+        require!(!treasury_config.is_paused, ErrorCode::ProtocolPaused);
+
+        // SAFETY: Check TVL cap
+        let new_tvl = treasury_config
+            .total_tvl
+            .checked_add(amount)
+            .ok_or(ErrorCode::Overflow)?;
+        require!(
+            new_tvl <= treasury_config.tvl_cap,
+            ErrorCode::TvlCapExceeded
+        );
+
         require!(user_config.is_active, ErrorCode::AccountNotActive);
 
         // Calculate platform fee (0.4%)
@@ -112,6 +137,18 @@ pub mod auto_savings {
         // Update stats (amount after fee)
         user_config.total_saved = user_config
             .total_saved
+            .checked_add(amount_after_fee)
+            .ok_or(ErrorCode::Overflow)?;
+
+        // SAFETY: Update total TVL
+        treasury_config.total_tvl = treasury_config
+            .total_tvl
+            .checked_add(amount_after_fee)
+            .ok_or(ErrorCode::Overflow)?;
+
+        // SAFETY: Update total TVL
+        treasury_config.total_tvl = treasury_config
+            .total_tvl
             .checked_add(amount_after_fee)
             .ok_or(ErrorCode::Overflow)?;
         user_config.transaction_count = user_config
@@ -193,6 +230,19 @@ pub mod auto_savings {
             .total_withdrawn
             .checked_add(amount)
             .ok_or(ErrorCode::Overflow)?;
+
+        // SAFETY: Update total TVL
+        let treasury_config = &mut ctx.accounts.treasury_config;
+        treasury_config.total_tvl = treasury_config
+            .total_tvl
+            .checked_sub(amount)
+            .ok_or(ErrorCode::Overflow)?;
+
+        // SAFETY: Update total TVL
+        treasury_config.total_tvl = treasury_config
+            .total_tvl
+            .checked_sub(amount)
+            .ok_or(ErrorCode::Overflow)?;
         user_config.transaction_count = user_config
             .transaction_count
             .checked_add(1)
@@ -212,6 +262,11 @@ pub mod auto_savings {
         require!(transfer_amount > 0, ErrorCode::InvalidAmount);
 
         let user_config = &mut ctx.accounts.user_config;
+        let treasury_config = &mut ctx.accounts.treasury_config;
+
+        // SAFETY: Check if protocol is paused
+        require!(!treasury_config.is_paused, ErrorCode::ProtocolPaused);
+        
         require!(user_config.is_active, ErrorCode::AccountNotActive);
 
         // Calculate savings amount based on rate
@@ -236,6 +291,12 @@ pub mod auto_savings {
         // Update stats
         user_config.total_saved = user_config
             .total_saved
+            .checked_add(savings_amount)
+            .ok_or(ErrorCode::Overflow)?;
+
+        // SAFETY: Update total TVL
+        treasury_config.total_tvl = treasury_config
+            .total_tvl
             .checked_add(savings_amount)
             .ok_or(ErrorCode::Overflow)?;
         user_config.transaction_count = user_config
@@ -309,6 +370,35 @@ pub mod auto_savings {
         Ok(())
     }
 
+    /// Emergency pause toggle (authority only)
+    pub fn toggle_pause(ctx: Context<TogglePause>) -> Result<()> {
+        let treasury_config = &mut ctx.accounts.treasury_config;
+        require!(
+            ctx.accounts.authority.key() == treasury_config.authority,
+            ErrorCode::Unauthorized
+        );
+        treasury_config.is_paused = !treasury_config.is_paused;
+        msg!("Protocol pause toggled: {}", treasury_config.is_paused);
+        Ok(())
+    }
+
+    /// Update TVL cap (authority only)
+    pub fn update_tvl_cap(ctx: Context<UpdateTvlCap>, new_cap: u64) -> Result<()> {
+        let treasury_config = &mut ctx.accounts.treasury_config;
+        require!(
+            ctx.accounts.authority.key() == treasury_config.authority,
+            ErrorCode::Unauthorized
+        );
+        require!(
+            new_cap >= treasury_config.total_tvl,
+            ErrorCode::InvalidAmount
+        );
+        let old_cap = treasury_config.tvl_cap;
+        treasury_config.tvl_cap = new_cap;
+        msg!("TVL cap updated from {} to {} lamports", old_cap, new_cap);
+        Ok(())
+    }
+
     /// Initialize a token vault for a specific SPL token
     pub fn initialize_token_vault(
         ctx: Context<InitializeTokenVault>,
@@ -356,84 +446,14 @@ pub mod auto_savings {
         Ok(())
     }
 
-    /// Swap SOL to SPL token using Jupiter Aggregator
-    /// This function executes a real swap via Jupiter CPI
+    /// Swap SOL to SPL token using Jupiter Aggregator (DISABLED for MVP)
     pub fn swap_to_token(
-        ctx: Context<SwapToToken>,
-        amount_in: u64,
-        min_amount_out: u64,
+        _ctx: Context<SwapToToken>,
+        _amount_in: u64,
+        _min_amount_out: u64,
     ) -> Result<()> {
-        require!(amount_in > 0, ErrorCode::InvalidAmount);
-        require!(min_amount_out > 0, ErrorCode::InvalidAmount);
-
-        let user_config = &ctx.accounts.user_config;
-        require!(user_config.is_active, ErrorCode::AccountNotActive);
-
-        // Calculate platform fee (0.4%)
-        let platform_fee = (amount_in as u128)
-            .checked_mul(PLATFORM_FEE_BASIS_POINTS as u128)
-            .ok_or(ErrorCode::Overflow)?
-            .checked_div(BASIS_POINTS_DIVISOR as u128)
-            .ok_or(ErrorCode::Overflow)? as u64;
-
-        let amount_after_fee = amount_in
-            .checked_sub(platform_fee)
-            .ok_or(ErrorCode::Overflow)?;
-
-        // Check vault has sufficient balance
-        let vault_balance = ctx.accounts.sol_vault.lamports();
-        require!(vault_balance >= amount_in, ErrorCode::InsufficientFunds);
-
-        // Create signer seeds for vault PDA
-        let user_key = ctx.accounts.user.key();
-        let vault_seeds: &[&[u8]] = &[
-            b"vault".as_ref(),
-            user_key.as_ref(),
-            &[user_config.vault_bump],
-        ];
-        let vault_signer_seeds = &[&vault_seeds[..]];
-
-        // Transfer fee to treasury
-        if platform_fee > 0 {
-            let fee_transfer = CpiContext::new_with_signer(
-                ctx.accounts.system_program.to_account_info(),
-                Transfer {
-                    from: ctx.accounts.sol_vault.to_account_info(),
-                    to: ctx.accounts.treasury.to_account_info(),
-                },
-                vault_signer_seeds,
-            );
-            transfer(fee_transfer, platform_fee)?;
-        }
-
-        // ✅ JUPITER INTEGRATION
-        // Note: This is a simplified implementation
-        // Production version requires:
-        // 1. Jupiter quote data passed as instruction data
-        // 2. All route accounts (DEX programs, market accounts, etc.)
-        // 3. Proper account validation
-        // 4. Slippage protection
-
-        msg!(
-            "Jupiter swap: {} SOL -> {} tokens minimum (fee: {} SOL)",
-            amount_after_fee,
-            min_amount_out,
-            platform_fee
-        );
-
-        // TODO: Implement actual Jupiter CPI call
-        // The full implementation requires:
-        // 1. jupiter_cpi::instruction::swap() with all required accounts
-        // 2. invoke_signed() with vault PDA as signer
-        // 3. Verify output amount meets minimum
-        // 4. Update token vault statistics
-
-        // For now, log the swap parameters
-        // This will be replaced with actual Jupiter CPI in production
-        msg!("⚠️  Jupiter CPI integration in progress");
-        msg!("To complete: Add jupiter_cpi::instruction::swap() call");
-        msg!("See docs/JUPITER_INTEGRATION_GUIDE.md for full implementation");
-
+        // SAFETY: SWAPS COMPLETELY DISABLED FOR MINIMUM VIABLE DEPLOYMENT
+        require!(SWAPS_ENABLED, ErrorCode::SwapsDisabled);
         Ok(())
     }
 
@@ -652,6 +672,16 @@ pub mod auto_savings {
     /// Deposit SOL and track allocation splits (simplified - uses single vault)
     pub fn deposit_with_allocation(ctx: Context<DepositWithAllocation>, amount: u64) -> Result<()> {
         require!(amount > 0, ErrorCode::InvalidAmount);
+
+        let user_config = &mut ctx.accounts.user_config;
+        let treasury_config = &mut ctx.accounts.treasury_config;
+
+        // SAFETY: Check if protocol is paused
+        require!(!treasury_config.is_paused, ErrorCode::ProtocolPaused);
+
+        // SAFETY: Check TVL cap
+        let new_tvl = treasury_config.total_tvl.checked_add(amount).ok_or(ErrorCode::Overflow)?;
+        require!(new_tvl <= treasury_config.tvl_cap, ErrorCode::TvlCapExceeded);
 
         let allocation_config = &mut ctx.accounts.allocation_config;
         let user_config = &mut ctx.accounts.user_config;
@@ -975,6 +1005,13 @@ pub struct ProcessTransfer<'info> {
     )]
     pub user_config: Account<'info, UserConfig>,
 
+    #[account(
+        mut,
+        seeds = [b"treasury"],
+        bump = treasury_config.bump
+    )]
+    pub treasury_config: Account<'info, TreasuryConfig>,
+
     /// CHECK: This is the PDA vault
     #[account(
         mut,
@@ -1013,6 +1050,28 @@ pub struct WithdrawTreasury<'info> {
     pub authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct TogglePause<'info> {
+    #[account(
+        mut,
+        seeds = [b"treasury"],
+        bump = treasury_config.bump
+    )]
+    pub treasury_config: Account<'info, TreasuryConfig>,
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateTvlCap<'info> {
+    #[account(
+        mut,
+        seeds = [b"treasury"],
+        bump = treasury_config.bump
+    )]
+    pub treasury_config: Account<'info, TreasuryConfig>,
+    pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -1152,32 +1211,32 @@ pub struct DepositWithAllocation<'info> {
 
     #[account(
         mut,
-        seeds = [b"vault", user.key().as_ref()],
-        bump = user_config.vault_bump
-    )]
-    /// CHECK: Main SOL vault PDA
-    pub sol_vault: AccountInfo<'info>,
-
-    #[account(
-        mut,
-        seeds = [b"treasury_config"],
+        seeds = [b"treasury"],
         bump = treasury_config.bump
     )]
     pub treasury_config: Account<'info, TreasuryConfig>,
 
+    /// CHECK: This is the PDA vault
     #[account(
         mut,
-        seeds = [b"treasury"],
-        bump
+        seeds = [b"vault", user.key().as_ref()],
+        bump = user_config.vault_bump
     )]
-    /// CHECK: Treasury PDA
-    pub treasury: AccountInfo<'info>,
+    pub sol_vault: AccountInfo<'info>,
 
     #[account(mut)]
     pub user: Signer<'info>,
 
     /// CHECK: Owner validation
     pub owner: AccountInfo<'info>,
+
+    /// CHECK: Treasury vault for fees
+    #[account(
+        mut,
+        seeds = [b"treasury_vault"],
+        bump
+    )]
+    pub treasury: SystemAccount<'info>,
 
     pub system_program: Program<'info, System>,
 }
@@ -1200,6 +1259,13 @@ pub struct WithdrawFromAllocation<'info> {
         has_one = owner @ ErrorCode::Unauthorized
     )]
     pub user_config: Account<'info, UserConfig>,
+
+    #[account(
+        mut,
+        seeds = [b"treasury"],
+        bump = treasury_config.bump
+    )]
+    pub treasury_config: Account<'info, TreasuryConfig>,
 
     #[account(
         mut,
@@ -1337,6 +1403,10 @@ pub struct TreasuryConfig {
     pub authority: Pubkey,         // 32 bytes
     pub total_fees_collected: u64, // 8 bytes
     pub bump: u8,                  // 1 byte
+    // SAFETY FEATURES
+    pub is_paused: bool, // Emergency pause
+    pub total_tvl: u64,  // Total value locked
+    pub tvl_cap: u64,    // TVL cap
 }
 
 /// Token vault configuration for holding SPL tokens
@@ -1428,4 +1498,12 @@ pub enum ErrorCode {
 
     #[msg("Allocation vault must be empty before removal")]
     AllocationVaultNotEmpty,
+
+    // SAFETY ERROR CODES
+    #[msg("Protocol is paused - deposits disabled")]
+    ProtocolPaused,
+    #[msg("TVL cap exceeded - maximum deposits reached")]
+    TvlCapExceeded,
+    #[msg("Swaps are disabled in this version")]
+    SwapsDisabled,
 }
