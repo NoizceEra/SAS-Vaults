@@ -22,8 +22,8 @@ jobs:
           docker run --rm \
             -v $(pwd):/workdir \
             -w /workdir \
-            solanafoundation/anchor:0.30.1 \
-            bash -c "cd programs/auto-savings && cargo update -p wit-bindgen --precise 0.50.0 && cargo update -p toml_datetime --precise 0.6.11 && cd - && anchor build && chown -R $(id -u):$(id -g) target"
+            backpackapp/build:v0.30.1 \
+            bash -c "rustc --version && cd programs/auto-savings && cargo update -p wit-bindgen --precise 0.50.0 && cargo update -p toml_datetime --precise 0.6.11 && cd - && anchor build && chown -R $(id -u):$(id -g) target"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
