@@ -1,139 +1,153 @@
 /**
- * 🏦 Treasury Initialization Script for Mainnet
+ * Initialize Mainnet Treasury with Safety Features
  * 
- * This script initializes the treasury configuration for your deployed
- * Solana Auto-Savings Protocol on Mainnet.
- * 
- * ⚠️ CRITICAL: Run this ONCE after deploying the program to Mainnet
- * 
- * Usage:
- *   node scripts/initialize-mainnet-treasury.js
+ * This initializes the treasury with:
+ * - Emergency pause (initially disabled)
+ * - TVL cap at 10 SOL
+ * - TVL tracking at 0
  */
 
-const { Connection, PublicKey, Keypair, Transaction, SystemProgram } = require('@solana/web3.js');
-const { Program, AnchorProvider, web3, BN } = require('@coral-xyz/anchor');
+const anchor = require('@coral-xyz/anchor');
+const { Connection, PublicKey, Keypair } = require('@solana/web3.js');
 const fs = require('fs');
 const path = require('path');
 
-// Configuration
-const PROGRAM_ID = new PublicKey('BWK8cgDEBjUk4h6Cn1PSSs673BTJbNNncAHrwF9m32NYA');
+const PROGRAM_ID = new PublicKey('V1YHSMC6Utp5smG67DL1vvPstcsAik6YSCFSJkfN79q');
 const RPC_URL = 'https://api.mainnet-beta.solana.com';
-const KEYPAIR_PATH = path.join(process.env.HOME || process.env.USERPROFILE, '.config', 'solana', 'id.json');
 
-console.log('🏦 Initializing Treasury for Mainnet Deployment');
-console.log('═'.repeat(60));
-console.log('Program ID:', PROGRAM_ID.toString());
-console.log('RPC URL:', RPC_URL);
-console.log('═'.repeat(60));
-
-async function initializeTreasury() {
+async function initializeMainnetTreasury() {
+    console.log('🚀 Initializing Mainnet Treasury with Safety Features...\n');
+    console.log('━'.repeat(70));
+    
     try {
-        // Load wallet
-        console.log('\n📂 Loading wallet keypair...');
-        const keypairData = JSON.parse(fs.readFileSync(KEYPAIR_PATH, 'utf-8'));
-        const wallet = Keypair.fromSecretKey(new Uint8Array(keypairData));
-        console.log('✅ Wallet loaded:', wallet.publicKey.toString());
-
-        // Setup connection and provider
+        // Connect to mainnet
         const connection = new Connection(RPC_URL, 'confirmed');
-        const provider = new AnchorProvider(connection, {
-            publicKey: wallet.publicKey,
-            signTransaction: async (tx) => {
-                tx.partialSign(wallet);
-                return tx;
-            },
-            signAllTransactions: async (txs) => {
-                txs.forEach(tx => tx.partialSign(wallet));
-                return txs;
-            }
-        }, { commitment: 'confirmed' });
-
-        // Check wallet balance
-        const balance = await connection.getBalance(wallet.publicKey);
-        console.log(`💰 Wallet Balance: ${(balance / 1e9).toFixed(4)} SOL`);
-
-        if (balance < 0.1 * 1e9) {
-            throw new Error('Insufficient balance! Need at least 0.1 SOL for initialization.');
+        
+        // Load deployer wallet
+        const walletPath = path.join(
+            process.env.USERPROFILE || process.env.HOME,
+            '.config',
+            'solana',
+            'id.json'
+        );
+        
+        if (!fs.existsSync(walletPath)) {
+            throw new Error(`Wallet not found at: ${walletPath}`);
         }
-
+        
+        const wallet = Keypair.fromSecretKey(
+            new Uint8Array(JSON.parse(fs.readFileSync(walletPath, 'utf8')))
+        );
+        
+        console.log('📍 Deployer Wallet:', wallet.publicKey.toString());
+        
+        // Check balance
+        const balance = await connection.getBalance(wallet.publicKey);
+        console.log('💰 Balance:', (balance / 1e9).toFixed(4), 'SOL');
+        
+        if (balance < 0.1 * 1e9) {
+            throw new Error('Insufficient balance. Need at least 0.1 SOL');
+        }
+        
+        // Load program IDL
+        const idlPath = path.join(__dirname, '..', 'target', 'idl', 'auto_savings.json');
+        const idl = JSON.parse(fs.readFileSync(idlPath, 'utf8'));
+        
+        // Create provider and program
+        const provider = new anchor.AnchorProvider(
+            connection,
+            new anchor.Wallet(wallet),
+            { commitment: 'confirmed' }
+        );
+        
+        const program = new anchor.Program(idl, PROGRAM_ID, provider);
+        
         // Derive treasury PDAs
         const [treasuryConfig] = PublicKey.findProgramAddressSync(
             [Buffer.from('treasury')],
             PROGRAM_ID
         );
-
+        
         const [treasuryVault] = PublicKey.findProgramAddressSync(
             [Buffer.from('treasury_vault')],
             PROGRAM_ID
         );
-
-        console.log('\n🔑 Treasury PDAs:');
-        console.log('  Config:', treasuryConfig.toString());
-        console.log('  Vault:', treasuryVault.toString());
-
-        // Load IDL
-        console.log('\n📄 Loading program IDL...');
-        const idlPath = path.join(__dirname, '..', 'target', 'idl', 'auto_savings.json');
-        if (!fs.existsSync(idlPath)) {
-            throw new Error(`IDL not found at ${idlPath}. Please build the program first.`);
-        }
-        const idl = JSON.parse(fs.readFileSync(idlPath, 'utf-8'));
-
-        // Create program instance
-        const program = new Program(idl, PROGRAM_ID, provider);
-
-        // Check if treasury is already initialized
-        console.log('\n🔍 Checking if treasury is already initialized...');
+        
+        console.log('\n📊 Treasury Addresses:');
+        console.log('━'.repeat(70));
+        console.log('Treasury Config:', treasuryConfig.toString());
+        console.log('Treasury Vault:', treasuryVault.toString());
+        
+        // Check if already initialized
         try {
-            const treasuryAccount = await connection.getAccountInfo(treasuryConfig);
-            if (treasuryAccount) {
-                console.log('⚠️  Treasury is already initialized!');
-                console.log('   If you need to update the authority, use the update_treasury instruction instead.');
-                return;
-            }
+            const config = await program.account.treasuryConfig.fetch(treasuryConfig);
+            console.log('\n⚠️  Treasury already initialized!');
+            console.log('Authority:', config.authority.toString());
+            console.log('Is Paused:', config.isPaused);
+            console.log('TVL Cap:', (config.tvlCap / 1e9).toFixed(2), 'SOL');
+            console.log('Current TVL:', (config.totalTvl / 1e9).toFixed(2), 'SOL');
+            console.log('Fees Collected:', (config.totalFeesCollected / 1e9).toFixed(4), 'SOL');
+            console.log('\n✅ Treasury is ready to use!');
+            return;
         } catch (e) {
-            // Treasury not initialized, continue
+            // Not initialized, continue
+            console.log('\n🔧 Treasury not initialized. Initializing now...');
         }
-
+        
         // Initialize treasury
-        console.log('\n🚀 Initializing treasury...');
-        console.log('   Authority:', wallet.publicKey.toString());
-
+        console.log('\n📝 Sending initialization transaction...');
+        
         const tx = await program.methods
             .initializeTreasury()
             .accounts({
                 treasuryConfig: treasuryConfig,
                 treasuryVault: treasuryVault,
                 authority: wallet.publicKey,
-                systemProgram: SystemProgram.programId,
+                systemProgram: anchor.web3.SystemProgram.programId,
             })
-            .signers([wallet])
             .rpc();
-
-        console.log('✅ Treasury initialized successfully!');
-        console.log('   Transaction:', tx);
-        console.log('   Explorer:', `https://solscan.io/tx/${tx}`);
-
-        // Verify initialization
-        console.log('\n🔍 Verifying treasury configuration...');
-        const treasuryData = await program.account.treasuryConfig.fetch(treasuryConfig);
-        console.log('   Authority:', treasuryData.authority.toString());
-        console.log('   Total Fees Collected:', (treasuryData.totalFeesCollected.toNumber() / 1e9).toFixed(4), 'SOL');
-
-        console.log('\n✅ Treasury initialization complete!');
-        console.log('═'.repeat(60));
-        console.log('🎉 Your Solana Auto-Savings Protocol is now live on Mainnet!');
-        console.log('═'.repeat(60));
-
+        
+        console.log('\n✅ TREASURY INITIALIZED!');
+        console.log('━'.repeat(70));
+        console.log('Transaction:', tx);
+        console.log('Explorer:', `https://solscan.io/tx/${tx}`);
+        
+        // Wait for confirmation
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Fetch and display config
+        const config = await program.account.treasuryConfig.fetch(treasuryConfig);
+        
+        console.log('\n📊 Treasury Configuration:');
+        console.log('━'.repeat(70));
+        console.log('Authority:', config.authority.toString());
+        console.log('Is Paused:', config.isPaused ? '❌ YES (Deposits disabled)' : '✅ NO (Active)');
+        console.log('TVL Cap:', (config.tvlCap / 1e9).toFixed(2), 'SOL (~$' + (config.tvlCap / 1e9 * 100).toFixed(0) + ')');
+        console.log('Current TVL:', (config.totalTvl / 1e9).toFixed(2), 'SOL');
+        console.log('Fees Collected:', (config.totalFeesCollected / 1e9).toFixed(4), 'SOL');
+        console.log('Bump:', config.bump);
+        
+        console.log('\n🎉 SUCCESS! Your protocol is now live on mainnet!');
+        console.log('━'.repeat(70));
+        
+        console.log('\n⚠️  IMPORTANT SAFETY REMINDERS:');
+        console.log('  • TVL capped at', (config.tvlCap / 1e9).toFixed(0), 'SOL');
+        console.log('  • Swaps are DISABLED');
+        console.log('  • Monitor transactions 24/7');
+        console.log('  • Test with small amounts first');
+        console.log('  • Emergency pause available if needed');
+        
+        console.log('\n🔗 Important Links:');
+        console.log('  Program:', `https://solscan.io/account/${PROGRAM_ID}`);
+        console.log('  Treasury Config:', `https://solscan.io/account/${treasuryConfig}`);
+        console.log('  Treasury Vault:', `https://solscan.io/account/${treasuryVault}`);
+        
     } catch (error) {
-        console.error('\n❌ Error initializing treasury:', error);
-        if (error.logs) {
-            console.error('\nProgram Logs:');
-            error.logs.forEach(log => console.error('  ', log));
-        }
+        console.error('\n❌ ERROR:', error.message);
+        console.error(error);
         process.exit(1);
     }
 }
 
-// Run initialization
-initializeTreasury();
+// Run
+initializeMainnetTreasury();
