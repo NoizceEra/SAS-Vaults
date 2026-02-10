@@ -1,0 +1,23 @@
+[workspace]
+members = [
+    "programs/auto-savings"
+]
+resolver = "2"
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1
+opt-level = "z"
+panic = "abort"
+strip = true
+
+[patch.crates-io]
+# Force older versions of crates that are breaking with edition 2024
+# These are the specific versions that still support Edition 2021
+spdx = { git = "https://github.com/EmbarkStudios/spdx", tag = "0.10.8" }
+wit-bindgen = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.24.0" }
+getrandom = { git = "https://github.com/rust-random/getrandom", tag = "v0.2.15" }
+blake3 = { git = "https://github.com/BLAKE3-team/BLAKE3", tag = "1.5.5" }
+# jobserver 0.1.32+ breaks with older cargo
+jobserver = { git = "https://github.com/rust-lang/jobserver-rs", tag = "0.1.31" }

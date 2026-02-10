@@ -18,20 +18,10 @@ idl-build = ["anchor-lang/idl-build"]
 
 [dependencies]
 anchor-lang = { version = "0.29.0", features = ["init-if-needed"] }
-
-# Pin blake3 to a version that doesn't require edition2024
-blake3 = { version = "=1.5.5", features = ["digest"] }
+getrandom = "=0.2.15"
 
 # ============================================================================
 # DEPLOYMENT OPTIMIZATION - Reduces program size by 20-40%
 # ============================================================================
-[profile.release]
-opt-level = "z"          # Optimize for size (z is smaller than s)
-lto = true               # Link-time optimization (removes dead code)
-codegen-units = 1        # Better optimization (slower compile, smaller output)
-strip = true             # Remove debug symbols from binary
-panic = "abort"          # Simpler panic handling (smaller code)
-overflow-checks = false  # Disable runtime overflow checks (saves space)
-
 # Note: These settings prioritize small binary size over compile speed
 # Build will take 2-3x longer but deployment will be cheaper

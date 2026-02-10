@@ -18,17 +18,17 @@ const idlPath = path.join(__dirname, '../idl/auto_savings.json');
 const idl = JSON.parse(fs.readFileSync(idlPath, 'utf8'));
 
 // Configuration
-const NETWORK = process.env.NETWORK || 'devnet';
+const NETWORK = process.env.NETWORK || 'mainnet-beta';
 const RPC_URL = NETWORK === 'mainnet-beta'
-    ? 'https://api.mainnet-beta.solana.com'
+    ? process.env.RPC_URL || 'https://mainnet.helius-rpc.com/?api-key=9a551d98-dd3d-4309-b523-bbbd227cee3e'
     : 'https://api.devnet.solana.com';
 
-const PROGRAM_ID = new PublicKey('E723pUhopYoiGxGY3TUJaKodXq5RSf1xt1WHnvYTdM4a');
+const PROGRAM_ID = new PublicKey('FoPp8w9H2MFskx77ypu5yyxizKLDqtPSZ7dMvPs4whGn');
 
 async function loadAuthority() {
-    // Load treasury authority keypair
+    // Load treasury authority keypair (using deployer wallet)
     const keypairPath = process.env.AUTHORITY_KEYPAIR ||
-        path.join(process.env.HOME || process.env.USERPROFILE, '.config', 'solana', 'treasury-authority.json');
+        path.join(process.env.HOME || process.env.USERPROFILE, '.config', 'solana', 'deployer.json');
 
     if (!fs.existsSync(keypairPath)) {
         throw new Error(`Treasury authority keypair not found at ${keypairPath}`);
@@ -40,7 +40,7 @@ async function loadAuthority() {
 
 async function getTreasuryPDAs(programId) {
     const [treasuryConfig, configBump] = PublicKey.findProgramAddressSync(
-        [Buffer.from('treasury')],
+        [Buffer.from('treasury_config')],
         programId
     );
 
@@ -53,7 +53,7 @@ async function getTreasuryPDAs(programId) {
 }
 
 async function initializeTreasury() {
-    console.log('\n🏦 Initializing Treasury on Devnet\n');
+    console.log('\n🏦 Initializing Treasury on Mainnet\n');
     console.log('━'.repeat(60));
 
     const connection = new Connection(RPC_URL, 'confirmed');
@@ -68,10 +68,9 @@ async function initializeTreasury() {
     const balanceSOL = balance / LAMPORTS_PER_SOL;
     console.log(`Authority Balance: ${balanceSOL.toFixed(4)} SOL`);
 
-    if (balanceSOL < 0.1) {
-        console.log('\n⚠️  Low balance! You may need to airdrop some SOL:');
-        console.log(`   solana airdrop 1 ${authority.publicKey.toString()} --url devnet`);
-        console.log('');
+    if (balanceSOL < 0.01) {
+        console.log('\n⚠️  Low balance! You need at least 0.01 SOL to initialize.');
+        throw new Error('Insufficient balance');
     }
 
     const { treasuryConfig, treasuryVault } = await getTreasuryPDAs(PROGRAM_ID);
@@ -98,7 +97,9 @@ async function initializeTreasury() {
             console.log('📋 Current Treasury Config:');
             console.log('━'.repeat(60));
             console.log(`Authority:        ${configData.authority.toString()}`);
-            console.log(`Total Fees:       ${(configData.totalFeesCollected / LAMPORTS_PER_SOL).toFixed(9)} SOL`);
+            console.log(`Is Paused:        ${configData.isPaused}`);
+            console.log(`Total TVL:        ${(configData.totalTvl / LAMPORTS_PER_SOL).toFixed(9)} SOL`);
+            console.log(`TVL Cap:          ${(configData.tvlCap / LAMPORTS_PER_SOL).toFixed(9)} SOL`);
             console.log(`Bump:             ${configData.bump}`);
             console.log('━'.repeat(60));
 
@@ -144,7 +145,9 @@ async function initializeTreasury() {
         console.log('\n📋 Treasury Configuration:');
         console.log('━'.repeat(60));
         console.log(`Authority:        ${configData.authority.toString()}`);
-        console.log(`Total Fees:       ${(configData.totalFeesCollected / LAMPORTS_PER_SOL).toFixed(9)} SOL`);
+        console.log(`Is Paused:        ${configData.isPaused}`);
+        console.log(`Total TVL:        ${(configData.totalTvl / LAMPORTS_PER_SOL).toFixed(9)} SOL`);
+        console.log(`TVL Cap:          ${(configData.tvlCap / LAMPORTS_PER_SOL).toFixed(9)} SOL`);
         console.log(`Bump:             ${configData.bump}`);
         console.log('━'.repeat(60));
 

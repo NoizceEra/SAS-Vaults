@@ -6,10 +6,10 @@ import { PublicKey } from '@solana/web3.js';
  * Update PROGRAM_ID after deploying the smart contract
  */
 
-// ✅ DEPLOYED TO DEVNET - February 4, 2026
-// Program ID: ALvwuWXCK48qFeTyHxkkSrufhAnP15bh4qkreZSwnhEi
-// ✅ UPDATED: New deployment with swap features via Solana Playground
-export const PROGRAM_ID = new PublicKey('ALvwuWXCK48qFeTyHxkkSrufhAnP15bh4qkreZSwnhEi');
+// ✅ DEPLOYED TO MAINNET - February 10, 2026
+// Program ID: FoPp8w9H2MFskx77ypu5yyxizKLDqtPSZ7dMvPs4whGn
+// ✅ LIVE: Minimal optimized version deployed to mainnet-beta
+export const PROGRAM_ID = new PublicKey('FoPp8w9H2MFskx77ypu5yyxizKLDqtPSZ7dMvPs4whGn');
 
 // Branding
 export const APP_NAME = 'Slice';
@@ -18,7 +18,7 @@ export const TAGLINE = 'Automated Savings on Solana';
 
 
 // Network Configuration
-export const NETWORK = 'devnet'; // 'devnet' | 'mainnet-beta'
+export const NETWORK = 'mainnet-beta'; // 'devnet' | 'mainnet-beta'
 export const COMMITMENT = 'confirmed';
 
 // RPC Endpoints
