@@ -22,9 +22,10 @@ export const NETWORK = 'mainnet-beta'; // 'devnet' | 'mainnet-beta'
 export const COMMITMENT = 'confirmed';
 
 // RPC Endpoints
+export const RPC_URL = "https://solana-mainnet.core.chainstack.com/bc71bed16350db49d622b7fa4d7c44d3";
 export const RPC_ENDPOINTS = {
     devnet: 'https://api.devnet.solana.com',
-    mainnet: 'https://api.mainnet-beta.solana.com',
+    mainnet: RPC_URL,
 };
 
 // Platform Fee (0.4%)

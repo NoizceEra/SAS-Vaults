@@ -44,24 +44,26 @@ yarn-error.log*
 *-keypair.json
 id.json
 deploy-keypair.json
-
-# Credentials (CRITICAL: Never commit sensitive data!)
-.credentials
-.credentials.*
-!.credentials.template
-credentials.json
-config/credentials.json
-secrets/
-*.pem
-*.key
-
-# Allow essential JSON files
+*.json
 !package.json
 !package-lock.json
 !tsconfig.json
-!Anchor.toml
+!vercel.json
 !**/idl/*.json
 !frontend/src/idl/*.json
+!**/*.schema.json
+
+# Sensitive Text Files
+*.txt
+*.log
+*.so
+*.zip
+*.ps1
+*.sh
+!README.md
+!QUICKSTART.md
+!docs/**/*.md
+!Anchor.toml
 !tailwind.config.js
 !vite.config.js
 !postcss.config.js

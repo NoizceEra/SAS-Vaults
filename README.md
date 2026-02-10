@@ -61,28 +61,26 @@ The Solana Auto-Savings Protocol enables users to automatically save a portion o
 
 ## 🚦 Current Status
 
-**Deployment Status:** ✅ **LIVE ON DEVNET**  
-**Last Updated:** February 4, 2026
+**Deployment Status:** ✅ **LIVE ON MAINNET-BETA**  
+**Last Updated:** February 10, 2026
 
 ### Recent Progress
-- ✅ Smart contract swap features implemented (`lib.rs`)
-- ✅ Frontend UI components built (`SwapInterface`, `TokenVaultDashboard`, `AutoSwapConfig`)
-- ✅ Build errors resolved (PDA seeds, borrow checker)
-- ✅ **Successfully deployed to Devnet!**
+- ✅ Optimized smart contract for Mainnet (Minimal version)
+- ✅ **Successfully deployed to Solana Mainnet-Beta!**
+- ✅ Frontend configured for Mainnet using Chainstack RPC
+- ✅ Automated savings protocol is active
 
-### Program Information
-**Program ID:** `ALvwuWXCK48qFeTyHxkkSrufhAnP15bh4qkreZSwnhEi`  
-**Network:** Devnet  
-**Explorer:** [View on Solana Explorer](https://explorer.solana.com/address/ALvwuWXCK48qFeTyHxkkSrufhAnP15bh4qkreZSwnhEi?cluster=devnet)
+### Program Information (Mainnet)
+**Program ID:** `FoPp8w9H2MFskx77ypu5yyxizKLDqtPSZ7dMvPs4whGn`  
+**Network:** Mainnet-Beta  
+**Explorer:** [View on Solana Explorer](https://explorer.solana.com/address/FoPp8w9H2MFskx77ypu5yyxizKLDqtPSZ7dMvPs4whGn)
 
 ### Next Steps
-- [ ] Copy IDL to frontend
-- [ ] Update frontend configuration
-- [ ] Initialize treasury
-- [ ] Test all features
-- [ ] Deploy frontend
+- [x] Program Deployed to Mainnet
+- [x] Frontend Configuration Updated
+- [ ] Final Treasury Initialization (Pending 1.5 SOL for upgrade)
+- [ ] Vercel UI Deployment
 
-See [`docs/swap-feature/DEPLOYMENT_SUCCESS.md`](docs/swap-feature/DEPLOYMENT_SUCCESS.md) for full details.
 
 ---
 
