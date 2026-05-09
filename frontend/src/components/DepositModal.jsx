@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 
-/**
- * DepositModal Component
- * Modal for depositing SOL with automatic split preview
- * Matches the design from deposit_modal_view.png
- */
 export const DepositModal = ({
     isOpen,
     onClose,
     onDeposit,
-    savingsRate = 50,
     maxBalance = 0
 }) => {
     const [amount, setAmount] = useState('');
@@ -17,13 +11,9 @@ export const DepositModal = ({
 
     if (!isOpen) return null;
 
-    // Calculate fee and split
     const depositAmount = parseFloat(amount) || 0;
     const platformFee = depositAmount * 0.004; // 0.4%
-    const remaining = depositAmount - platformFee;
-    const savingsAmount = remaining * (savingsRate / 100);
-    const spendingAmount = remaining - savingsAmount;
-    const totalReceived = remaining;
+    const totalToVault = depositAmount - platformFee;
 
     const handleMaxClick = () => {
         setAmount(maxBalance.toFixed(4));
@@ -45,91 +35,67 @@ export const DepositModal = ({
     };
 
     return (
-        <div className="modal-backdrop" onClick={onClose}>
-            <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>Deposit SOL</h2>
-                    <button className="close-btn" onClick={onClose}>×</button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in" onClick={onClose}>
+            <div className="bg-[#141B3D] border border-white/10 rounded-[2rem] w-full max-w-md p-8 shadow-3xl shadow-purple-500/10" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-2xl font-bold">Deposit SOL</h2>
+                    <button className="text-slate-400 hover:text-white transition-colors" onClick={onClose}>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
-                <div className="modal-body">
-                    {/* Amount Input */}
-                    <div className="input-group">
-                        <label>Amount</label>
-                        <div className="input-wrapper">
-                            <span className="text-2xl mr-2">◎</span>
-                            <input
-                                type="number"
-                                placeholder="0.00"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                step="0.01"
-                                min="0"
-                                max={maxBalance}
-                            />
-                            <span className="input-suffix">SOL</span>
-                            <button className="input-action" onClick={handleMaxClick}>
-                                MAX
-                            </button>
+                <div className="space-y-6">
+                    <div>
+                        <div className="flex justify-between mb-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Amount to Save</label>
+                            <span className="text-xs text-slate-400">Balance: {maxBalance.toFixed(4)} SOL</span>
                         </div>
-                        <div className="input-hint">Available: {maxBalance.toFixed(4)} SOL</div>
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-purple-500/10 rounded-2xl blur group-focus-within:opacity-100 opacity-0 transition-opacity" />
+                            <div className="relative bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
+                                <span className="text-xl font-bold text-slate-500">◎</span>
+                                <input
+                                    type="number"
+                                    placeholder="0.00"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    className="bg-transparent border-none outline-none flex-1 text-xl font-bold placeholder:text-slate-600"
+                                />
+                                <button 
+                                    onClick={handleMaxClick}
+                                    className="px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-[10px] font-black text-purple-400 hover:bg-purple-500/30 transition-all"
+                                >
+                                    MAX
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Fee & Split Breakdown */}
                     {depositAmount > 0 && (
-                        <div className="space-y-3 mt-6">
-                            <div className="text-sm text-tertiary text-center">
-                                After 0.4% fee ({platformFee.toFixed(4)} SOL)
+                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 space-y-4">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-slate-400">Protocol Fee (0.4%)</span>
+                                <span className="font-mono text-slate-300">-{platformFee.toFixed(6)} SOL</span>
                             </div>
-
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-green-500">→</span>
-                                        <span className="text-sm">Savings ({savingsRate}%):</span>
-                                    </div>
-                                    <span className="font-bold text-green-500">
-                                        {savingsAmount.toFixed(4)} SOL
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-blue-500">→</span>
-                                        <span className="text-sm">Spending ({100 - savingsRate}%):</span>
-                                    </div>
-                                    <span className="font-bold text-blue-500">
-                                        {spendingAmount.toFixed(4)} SOL
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="text-center pt-3 border-t border-white/10">
-                                <span className="text-sm text-secondary">You'll receive: </span>
-                                <span className="font-bold text-lg">{totalReceived.toFixed(4)} SOL</span>
+                            <div className="h-px bg-white/5" />
+                            <div className="flex justify-between">
+                                <span className="text-sm font-bold">Total Added to Vault</span>
+                                <span className="text-lg font-black text-emerald-400">{totalToVault.toFixed(4)} SOL</span>
                             </div>
                         </div>
                     )}
-                </div>
 
-                <div className="modal-footer">
-                    <button className="btn-secondary" onClick={onClose} disabled={isProcessing}>
-                        Cancel
-                    </button>
-                    <button
-                        className="btn-primary"
-                        onClick={handleDeposit}
-                        disabled={isProcessing || depositAmount <= 0 || depositAmount > maxBalance}
-                    >
-                        {isProcessing ? (
-                            <>
-                                <div className="spinner"></div>
-                                Processing...
-                            </>
-                        ) : (
-                            'Confirm Deposit'
-                        )}
-                    </button>
+                    <div className="pt-4">
+                        <button
+                            onClick={handleDeposit}
+                            disabled={isProcessing || depositAmount <= 0 || depositAmount > maxBalance}
+                            className="w-full py-5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl font-black text-lg shadow-xl shadow-purple-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30"
+                        >
+                            {isProcessing ? 'Processing Transaction...' : 'Confirm Deposit'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

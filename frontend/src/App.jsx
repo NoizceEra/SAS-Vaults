@@ -2,39 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useAutoSavings } from './sdk/useAutoSavings';
-import { OnboardingScreen, Dashboard, DemoModeBanner, SwapInterface, TokenVaultDashboard, LandingPage } from './components';
+import { Dashboard, LandingPage } from './components';
 import './index.css';
 
-/**
- * Main App Component
- * Implements the complete UI/UX flow from the mockups
- */
 function App() {
   const wallet = useWallet();
   const {
     vault,
     loading,
     initializing,
-    initializeVault,
+    activateUser,
     deposit,
     withdraw,
-    updateSavingsRate,
     refreshVault
   } = useAutoSavings();
 
   const [walletBalance, setWalletBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
-  const [activeTab, setActiveTab] = useState('vaults'); // 'vaults' or 'swap'
-  const [showLanding, setShowLanding] = useState(!wallet.connected); // Show landing if not connected
+  const [showLanding, setShowLanding] = useState(!wallet.connected);
 
-  // Handle wallet connection changes
+  // Auto-hide landing if already connected on load
   useEffect(() => {
     if (wallet.connected) {
-      // Optional: Auto-redirect if connected? 
-      // For now, let's keep the user in control or respect the initial state.
-      // Actually, setting showLanding(false) here might be jarring if they just connected.
-      // Let's rely on the "Launch App" button for explicit entry.
-      // But if they are *already* connected on load, the initial state (!wallet.connected) handles it.
+      setShowLanding(false);
     }
   }, [wallet.connected]);
 
@@ -52,18 +42,17 @@ function App() {
     };
 
     fetchBalance();
-    const interval = setInterval(fetchBalance, 10000); // Refresh every 10s
+    const interval = setInterval(fetchBalance, 10000); 
     return () => clearInterval(interval);
   }, [wallet.publicKey, wallet.connection]);
 
-  // Handle vault creation
-  const handleCreateVault = async (savingsRate) => {
+  // Handle vault activation
+  const handleActivate = async () => {
     try {
-      await initializeVault(savingsRate);
+      await activateUser();
       await refreshVault();
     } catch (error) {
-      console.error('Vault creation failed:', error);
-      throw error;
+      console.error('Activation failed:', error);
     }
   };
 
@@ -73,12 +62,11 @@ function App() {
       await deposit(amount);
       await refreshVault();
 
-      // Add transaction to local state
       setTransactions(prev => [{
         type: 'deposit',
         amount,
         timestamp: Date.now(),
-        signature: null // Will be populated by actual transaction
+        signature: null 
       }, ...prev]);
     } catch (error) {
       console.error('Deposit failed:', error);
@@ -87,12 +75,11 @@ function App() {
   };
 
   // Handle withdrawal
-  const handleWithdraw = async (amount, fromSavings) => {
+  const handleWithdraw = async (amount) => {
     try {
-      await withdraw(amount, fromSavings);
+      await withdraw(amount);
       await refreshVault();
 
-      // Add transaction to local state
       setTransactions(prev => [{
         type: 'withdrawal',
         amount,
@@ -105,236 +92,54 @@ function App() {
     }
   };
 
-  // Handle savings rate update
-  const handleUpdateSavingsRate = async (newRate) => {
-    try {
-      await updateSavingsRate(newRate);
-      await refreshVault();
-    } catch (error) {
-      console.error('Rate update failed:', error);
-      throw error;
-    }
-  };
-
-  // Show loading state only during initial data fetch
   if (showLanding) {
     return <LandingPage onLaunchApp={() => setShowLanding(false)} />;
   }
 
+  // Loading state
   if (initializing && wallet.connected) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-secondary">Loading...</p>
+      <div className="min-h-screen bg-[#0A0E27] flex items-center justify-center">
+        <div className="relative">
+          <div className="w-24 h-24 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xs font-black text-purple-500">SLICE</span>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Show wallet connection prompt
+  // Wallet Connection Prompt (if they exited landing but didn't connect)
   if (!wallet.connected) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center animate-in">
-          {/* Logo */}
-          <div className="mb-8">
-            <div className="w-24 h-24 mx-auto flex items-center justify-center">
-              <img src="/logo.png" alt="Slice Logo" className="w-full h-full object-contain" />
-            </div>
+      <div className="min-h-screen bg-[#0A0E27] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-[#141B3D] border border-white/10 rounded-[3rem] p-12 text-center shadow-3xl shadow-purple-500/10 animate-in">
+           <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/20 mx-auto mb-8">
+              <span className="text-4xl font-black">S</span>
           </div>
-
-          {/* Title */}
-          <h1 className="text-4xl font-bold mb-4 text-gradient">
-            Slice
-          </h1>
-          <p className="text-secondary mb-8 text-lg">
-            Save automatically with every transaction
+          <h1 className="text-4xl font-black tracking-tight mb-4 text-white">Connect Wallet</h1>
+          <p className="text-slate-400 mb-10 font-medium leading-relaxed">
+            Please connect your Solana wallet to access your secure savings vaults.
           </p>
-
-          {/* Features */}
-          <div className="space-y-3 mb-8 text-left">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-green-500 text-xl">✓</span>
-              </div>
-              <div>
-                <div className="font-semibold">Automatic Savings</div>
-                <div className="text-sm text-tertiary">Set it and forget it</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-500 text-xl">🔒</span>
-              </div>
-              <div>
-                <div className="font-semibold">Non-Custodial</div>
-                <div className="text-sm text-tertiary">You always control your funds</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-              <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-purple-500 text-xl">⚡</span>
-              </div>
-              <div>
-                <div className="font-semibold">Low Fees</div>
-                <div className="text-sm text-tertiary">Only 0.4% platform fee</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Connect Wallet Button */}
-          <div className="flex justify-center">
-            <WalletMultiButton className="btn-primary" />
-          </div>
-
-          <p className="text-xs text-tertiary mt-4">
-            Powered by Solana
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show onboarding if no vault exists
-  // if (!vault) {
-  //   return <OnboardingScreen onCreateVault={handleCreateVault} walletBalance={walletBalance} />;
-  // }
-
-  // Show main dashboard
-  return (
-    <>
-      {/* Header */}
-      <header className="border-b border-white/10 bg-primary/50 backdrop-blur-lg sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 flex items-center justify-center">
-              <img src="/logo.png" alt="Slice Logo" className="w-full h-full object-contain" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">Slice</h1>
-              <p className="text-xs text-tertiary">Auto Savings Protocol on Solana</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="hidden md:block text-sm">
-              <span className="text-secondary">Wallet: </span>
-              <span className="font-mono font-semibold">
-                {wallet.publicKey?.toString().slice(0, 4)}...
-                {wallet.publicKey?.toString().slice(-4)}
-              </span>
-            </div>
+          <div className="flex justify-center scale-110">
             <WalletMultiButton />
           </div>
         </div>
-      </header>
-
-      {/* Demo Mode Banner */}
-      <DemoModeBanner />
-
-      {/* Tab Navigation */}
-      <div className="max-w-7xl mx-auto px-4 mt-8">
-        <div className="flex gap-2 border-b border-white/10">
-          <button
-            onClick={() => setActiveTab('vaults')}
-            className={`px-6 py-3 font-semibold transition-all relative ${activeTab === 'vaults'
-              ? 'text-purple-400'
-              : 'text-gray-400 hover:text-white'
-              }`}
-          >
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-              </svg>
-              <span>Savings Vaults</span>
-            </div>
-            {activeTab === 'vaults' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500" />
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('swap')}
-            className={`px-6 py-3 font-semibold transition-all relative ${activeTab === 'swap'
-              ? 'text-purple-400'
-              : 'text-gray-400 hover:text-white'
-              }`}
-          >
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-              </svg>
-              <span>Token Swap</span>
-              <span className="px-2 py-0.5 text-xs bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded-full">Coming Soon!</span>
-            </div>
-            {activeTab === 'swap' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500" />
-            )}
-          </button>
-        </div>
       </div>
+    );
+  }
 
-      {/* Main Content - Conditional based on active tab */}
-      {activeTab === 'vaults' ? (
-        <Dashboard
-          vault={vault || { savingsBalance: 0, spendingBalance: 0, savingsRate: 10 }}
-          isInitialized={!!vault}
-          onCreateVault={handleCreateVault}
-          walletBalance={walletBalance}
-          onDeposit={handleDeposit}
-          onWithdraw={handleWithdraw}
-          onUpdateSavingsRate={handleUpdateSavingsRate}
-          transactions={transactions}
-        />
-      ) : (
-        <div className="max-w-7xl mx-auto px-4 py-16 relative min-h-[600px] flex items-center justify-center border border-white/5 rounded-2xl bg-white/5 backdrop-blur-sm overflow-hidden">
-          {/* Background "Ghost" UI - Visual placeholder only */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none flex flex-col items-center gap-8 p-8 grayscale filter blur-sm select-none">
-            <div className="w-full h-40 bg-white/20 rounded-xl"></div>
-            <div className="flex gap-8 w-full">
-              <div className="flex-1 h-96 bg-white/20 rounded-xl"></div>
-              <div className="w-96 h-96 bg-white/20 rounded-xl"></div>
-            </div>
-          </div>
-
-          {/* Overlay Message */}
-          <div className="relative z-10 text-center p-12 bg-black/80 rounded-2xl border border-purple-500/30 backdrop-blur-md shadow-2xl max-w-lg mx-auto transform hover:scale-105 transition-transform duration-500">
-            <div className="w-20 h-20 mx-auto bg-purple-500/20 rounded-full flex items-center justify-center mb-6">
-              <span className="text-4xl">🚧</span>
-            </div>
-            <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-              In Development
-            </h2>
-            <p className="text-gray-400 mb-8 text-lg">
-              We're integrating Jupiter Swap to bring you the best rates for your savings. This feature will be available in the next update.
-            </p>
-            <button
-              onClick={() => setActiveTab('vaults')}
-              className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-purple-500/25"
-            >
-              Back to Dashboard
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Footer */}
-      <footer className="border-t border-white/10 mt-16">
-        <div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-tertiary">
-          <p>Slice by SAS Protocol v1.0.0</p>
-          <p className="mt-2">
-            <a href="#" className="hover:text-purple-500 transition-colors">Documentation</a>
-            {' • '}
-            <a href="#" className="hover:text-purple-500 transition-colors">GitHub</a>
-            {' • '}
-            <a href="#" className="hover:text-purple-500 transition-colors">Discord</a>
-          </p>
-        </div>
-      </footer>
-    </>
+  return (
+    <Dashboard
+      vault={vault}
+      isInitialized={!!vault}
+      onCreateVault={handleActivate}
+      walletBalance={walletBalance}
+      onDeposit={handleDeposit}
+      onWithdraw={handleWithdraw}
+      transactions={transactions}
+    />
   );
 }
 
