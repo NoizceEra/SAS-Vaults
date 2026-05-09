@@ -4,9 +4,16 @@ import PriceTicker from './PriceTicker';
 const LandingPage = ({ onLaunchApp }) => {
     const [demoAmount, setDemoAmount] = useState(10);
     const [demoRate, setDemoRate] = useState(10);
+    const [copySuccess, setCopySuccess] = useState(false);
 
     const savingsAmount = (demoAmount * demoRate) / 100;
     const projectedYearly = savingsAmount * 52; 
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText('npm install -g @slice/cli');
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+    };
 
     return (
         <div className="min-h-screen bg-[#0A0E27] text-white font-sans selection:bg-purple-500 selection:text-white overflow-x-hidden">
@@ -32,6 +39,7 @@ const LandingPage = ({ onLaunchApp }) => {
                 <div className="flex items-center gap-8">
                     <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
                         <a href="#features" className="hover:text-white transition-colors">Features</a>
+                        <a href="#cli" className="hover:text-white transition-colors">CLI</a>
                         <a href="#security" className="hover:text-white transition-colors">Security</a>
                     </div>
                     <button
@@ -74,6 +82,33 @@ const LandingPage = ({ onLaunchApp }) => {
                             <button className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all backdrop-blur-md">
                                 Read Docs
                             </button>
+                        </div>
+
+                        {/* CLI Integration Preview */}
+                        <div id="cli" className="mt-12 p-1 bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl border border-white/5 max-w-md mx-auto lg:mx-0">
+                            <div className="flex items-center justify-between px-4 py-2 bg-slate-950/50 rounded-t-xl border-b border-white/5">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Agentic CLI Install</span>
+                                <div className="flex gap-1.5">
+                                    <div className="w-2 h-2 rounded-full bg-red-500/50" />
+                                    <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
+                                    <div className="w-2 h-2 rounded-full bg-green-500/50" />
+                                </div>
+                            </div>
+                            <div className="p-4 flex items-center justify-between font-mono text-sm">
+                                <code className="text-purple-400">
+                                    <span className="text-slate-500">$</span> npm install -g @slice/cli
+                                </code>
+                                <button 
+                                    onClick={handleCopy}
+                                    className="p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                >
+                                    {copySuccess ? (
+                                        <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    ) : (
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
