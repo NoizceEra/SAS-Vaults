@@ -84,7 +84,7 @@ export const Dashboard = ({
                         </div>
                         <div className="mt-8 flex gap-3">
                             <div className="px-4 py-2 bg-white/10 rounded-xl backdrop-blur-md">
-                                <span className="text-xs font-bold text-white/80">0.4% Fee Tier</span>
+                                <span className="text-xs font-bold text-white/80">Premium Protection</span>
                             </div>
                         </div>
                     </div>

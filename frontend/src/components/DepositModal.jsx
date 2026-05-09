@@ -75,11 +75,6 @@ export const DepositModal = ({
 
                     {depositAmount > 0 && (
                         <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 space-y-4">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-slate-400">Protocol Fee (0.4%)</span>
-                                <span className="font-mono text-slate-300">-{platformFee.toFixed(6)} SOL</span>
-                            </div>
-                            <div className="h-px bg-white/5" />
                             <div className="flex justify-between">
                                 <span className="text-sm font-bold">Total Added to Vault</span>
                                 <span className="text-lg font-black text-emerald-400">{totalToVault.toFixed(4)} SOL</span>

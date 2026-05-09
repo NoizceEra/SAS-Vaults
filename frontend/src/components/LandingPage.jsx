@@ -121,9 +121,6 @@ const LandingPage = ({ onLaunchApp }) => {
                                     <h3 className="text-2xl font-bold">Simulator</h3>
                                     <p className="text-sm text-slate-400">See your future growth</p>
                                 </div>
-                                <div className="px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg">
-                                    <span className="text-xs font-bold text-purple-400">0.4% Fee</span>
-                                </div>
                             </div>
 
                             <div className="space-y-8">
@@ -181,9 +178,9 @@ const LandingPage = ({ onLaunchApp }) => {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
                         {[
                             { label: 'Network', value: 'Mainnet-Beta', color: 'text-white' },
-                            { label: 'Protocol Fee', value: '0.4%', color: 'text-purple-400' },
-                            { label: 'Total Saved', value: '14,200+', color: 'text-white' },
                             { label: 'Security', value: 'Non-Custodial', color: 'text-emerald-400' },
+                            { label: 'Total Saved', value: '14,200+', color: 'text-white' },
+                            { label: 'Performance', value: 'Optimized', color: 'text-purple-400' },
                         ].map((stat, i) => (
                             <div key={i} className="text-center">
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-3">{stat.label}</p>
@@ -192,7 +189,20 @@ const LandingPage = ({ onLaunchApp }) => {
                         ))}
                     </div>
                 </div>
-            </section>
+            {/* Footer */}
+            <footer className="relative z-10 py-12 border-t border-white/5 bg-slate-950/50">
+                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                            <span className="text-sm font-bold">S</span>
+                        </div>
+                        <span className="font-bold text-slate-300">Slice</span>
+                    </div>
+                    <div className="text-xs font-medium text-slate-500 uppercase tracking-widest">
+                        © 2026 Slice. All rights reserved.
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 };

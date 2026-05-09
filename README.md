@@ -23,7 +23,6 @@ The SLICE protocol has been refactored into its **Minimalist Core**. This versio
 - ✅ **Secure Vaults**: Each user gets a private, non-custodial PDA vault.
 - ✅ **Agent-Ready CLI**: Control your savings via terminal or AI agents.
 - ✅ **Wallet Support**: Native support for Phantom, Solflare, and other Solana wallets.
-- ✅ **Fee Collection**: Sustainable 0.4% platform fee on all savings actions.
 - ✅ **Optimized Binary**: Stripped for minimum rent cost.
 
 ---
