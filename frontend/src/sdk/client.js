@@ -7,64 +7,21 @@ import {
 import { AnchorProvider, Program, BN } from '@coral-xyz/anchor';
 import { IDL } from '../idl/idl.js';
 
-// Debug: Check if IDL loaded correctly
-console.log('IDL loaded:', IDL ? 'Yes' : 'No');
-console.log('IDL type:', typeof IDL);
-console.log('IDL has address:', IDL?.metadata?.address);
-
 // Program ID - read from Vite env `VITE_PROGRAM_ID`, then IDL.metadata.address, then fallback
-const programIdString = import.meta.env.VITE_PROGRAM_ID || IDL?.metadata?.address || '8hoCkMSWSvSt9oCokRKsKx8wqvVSWjGNnZTuvRFYhDMR';
-console.log('Program ID string:', programIdString);
-console.log('Program ID from env:', import.meta.env.VITE_PROGRAM_ID);
-
+const programIdString = import.meta.env.VITE_PROGRAM_ID || IDL?.metadata?.address || 'FoPp8w9H2MFskx77ypu5yyxizKLDqtPSZ7dMvPs4whGn';
 const PROGRAM_ID = new PublicKey(programIdString);
-console.log('PROGRAM_ID created:', PROGRAM_ID.toString());
 
 export class AutoSavingsClient {
     constructor(connection, wallet) {
-        console.log('AutoSavingsClient constructor called');
-        console.log('connection:', connection);
-        console.log('wallet:', wallet);
-        console.log('wallet.publicKey:', wallet?.publicKey);
+        if (!connection) throw new Error('Connection is required');
+        if (!wallet || !wallet.publicKey) throw new Error('Wallet not connected');
+        if (!IDL) throw new Error('IDL not loaded');
 
-        if (!connection) {
-            throw new Error('Connection is required');
-        }
-
-        if (!wallet || !wallet.publicKey) {
-            throw new Error('Wallet not connected');
-        }
-
-        if (!IDL) {
-            throw new Error('IDL not loaded');
-        }
-
-        console.log('Creating AnchorProvider...');
         this.provider = new AnchorProvider(connection, wallet, {
             commitment: 'confirmed',
         });
-        console.log('Provider created:', this.provider);
 
-        console.log('Creating Program with IDL and PROGRAM_ID...');
-        console.log('IDL:', IDL);
-        console.log('PROGRAM_ID:', PROGRAM_ID);
-        console.log('PROGRAM_ID type:', PROGRAM_ID.constructor.name);
-        console.log('Provider:', this.provider);
-
-        try {
-            // Pass programId explicitly as PublicKey
-            this.program = new Program(IDL, PROGRAM_ID, this.provider);
-            console.log('Program created successfully!');
-        } catch (error) {
-            console.error('Error creating Program:', error);
-            console.error('Error details:', {
-                idl: IDL,
-                programId: PROGRAM_ID,
-                programIdString: PROGRAM_ID.toString(),
-                provider: this.provider
-            });
-            throw error;
-        }
+        this.program = new Program(IDL, PROGRAM_ID, this.provider);
     }
 
     /**
@@ -72,7 +29,7 @@ export class AutoSavingsClient {
      */
     getUserConfigPDA(userPublicKey) {
         return PublicKey.findProgramAddressSync(
-            [Buffer.from('config'), userPublicKey.toBuffer()],
+            [Buffer.from('user_config'), userPublicKey.toBuffer()],
             this.program.programId
         );
     }
@@ -88,15 +45,35 @@ export class AutoSavingsClient {
     }
 
     /**
-     * Initialize a new user account
+     * Derive the treasury config PDA
      */
-    async initializeUser(savingsRate) {
+    getTreasuryConfigPDA() {
+        return PublicKey.findProgramAddressSync(
+            [Buffer.from('treasury_config')],
+            this.program.programId
+        );
+    }
+
+    /**
+     * Derive the treasury vault PDA
+     */
+    getTreasuryVaultPDA() {
+        return PublicKey.findProgramAddressSync(
+            [Buffer.from('treasury_vault')],
+            this.program.programId
+        );
+    }
+
+    /**
+     * Activate a new user account
+     */
+    async activateUser() {
         const userPublicKey = this.provider.wallet.publicKey;
         const [userConfigPDA] = this.getUserConfigPDA(userPublicKey);
         const [vaultPDA] = this.getVaultPDA(userPublicKey);
 
-        const tx = await this.program.methods
-            .initializeUser(savingsRate)
+        return await this.program.methods
+            .activateUser()
             .accounts({
                 userConfig: userConfigPDA,
                 vault: vaultPDA,
@@ -104,137 +81,58 @@ export class AutoSavingsClient {
                 systemProgram: SystemProgram.programId,
             })
             .rpc();
-
-        return tx;
     }
 
     /**
-     * Update the user's savings rate
+     * Save SOL to the savings vault
      */
-    async updateSavingsRate(newRate) {
-        const userPublicKey = this.provider.wallet.publicKey;
-        const [userConfigPDA] = this.getUserConfigPDA(userPublicKey);
-
-        const tx = await this.program.methods
-            .updateSavingsRate(newRate)
-            .accounts({
-                userConfig: userConfigPDA,
-                user: userPublicKey,
-                owner: userPublicKey,
-            })
-            .rpc();
-
-        return tx;
-    }
-
-    /**
-     * Deposit SOL to the savings vault
-     */
-    async deposit(amountSOL) {
+    async saveSol(amountSOL) {
         const userPublicKey = this.provider.wallet.publicKey;
         const [userConfigPDA] = this.getUserConfigPDA(userPublicKey);
         const [vaultPDA] = this.getVaultPDA(userPublicKey);
+        const [treasuryConfigPDA] = this.getTreasuryConfigPDA();
+        const [treasuryVaultPDA] = this.getTreasuryVaultPDA();
 
         const amountLamports = new BN(amountSOL * LAMPORTS_PER_SOL);
 
-        const tx = await this.program.methods
-            .deposit(amountLamports)
+        return await this.program.methods
+            .saveSol(amountLamports)
             .accounts({
                 userConfig: userConfigPDA,
                 vault: vaultPDA,
+                treasuryConfig: treasuryConfigPDA,
+                treasury: treasuryVaultPDA,
                 user: userPublicKey,
                 owner: userPublicKey,
                 systemProgram: SystemProgram.programId,
             })
             .rpc();
-
-        return tx;
     }
 
     /**
      * Withdraw SOL from the savings vault
      */
-    async withdraw(amountSOL) {
+    async withdrawSol(amountSOL) {
         const userPublicKey = this.provider.wallet.publicKey;
         const [userConfigPDA] = this.getUserConfigPDA(userPublicKey);
         const [vaultPDA] = this.getVaultPDA(userPublicKey);
+        const [treasuryConfigPDA] = this.getTreasuryConfigPDA();
+        const [treasuryVaultPDA] = this.getTreasuryVaultPDA();
 
         const amountLamports = new BN(amountSOL * LAMPORTS_PER_SOL);
 
-        const tx = await this.program.methods
-            .withdraw(amountLamports)
+        return await this.program.methods
+            .withdrawSol(amountLamports)
             .accounts({
                 userConfig: userConfigPDA,
                 vault: vaultPDA,
+                treasuryConfig: treasuryConfigPDA,
+                treasury: treasuryVaultPDA,
                 user: userPublicKey,
                 owner: userPublicKey,
                 systemProgram: SystemProgram.programId,
             })
             .rpc();
-
-        return tx;
-    }
-
-    /**
-     * Process a transfer with auto-save
-     */
-    async processTransfer(transferAmountSOL) {
-        const userPublicKey = this.provider.wallet.publicKey;
-        const [userConfigPDA] = this.getUserConfigPDA(userPublicKey);
-        const [vaultPDA] = this.getVaultPDA(userPublicKey);
-
-        const transferAmountLamports = new BN(transferAmountSOL * LAMPORTS_PER_SOL);
-
-        const tx = await this.program.methods
-            .processTransfer(transferAmountLamports)
-            .accounts({
-                userConfig: userConfigPDA,
-                vault: vaultPDA,
-                user: userPublicKey,
-                owner: userPublicKey,
-                systemProgram: SystemProgram.programId,
-            })
-            .rpc();
-
-        return tx;
-    }
-
-    /**
-     * Deactivate the user's account
-     */
-    async deactivate() {
-        const userPublicKey = this.provider.wallet.publicKey;
-        const [userConfigPDA] = this.getUserConfigPDA(userPublicKey);
-
-        const tx = await this.program.methods
-            .deactivate()
-            .accounts({
-                userConfig: userConfigPDA,
-                user: userPublicKey,
-                owner: userPublicKey,
-            })
-            .rpc();
-
-        return tx;
-    }
-
-    /**
-     * Reactivate the user's account
-     */
-    async reactivate() {
-        const userPublicKey = this.provider.wallet.publicKey;
-        const [userConfigPDA] = this.getUserConfigPDA(userPublicKey);
-
-        const tx = await this.program.methods
-            .reactivate()
-            .accounts({
-                userConfig: userConfigPDA,
-                user: userPublicKey,
-                owner: userPublicKey,
-            })
-            .rpc();
-
-        return tx;
     }
 
     /**
@@ -248,12 +146,9 @@ export class AutoSavingsClient {
             const config = await this.program.account.userConfig.fetch(userConfigPDA);
             return {
                 owner: config.owner,
-                savingsRate: config.savingsRate,
                 totalSaved: config.totalSaved.toNumber() / LAMPORTS_PER_SOL,
-                totalWithdrawn: config.totalWithdrawn.toNumber() / LAMPORTS_PER_SOL,
-                transactionCount: config.transactionCount.toNumber(),
-                isActive: config.isActive,
                 bump: config.bump,
+                vaultBump: config.vaultBump
             };
         } catch (error) {
             return null; // User not initialized
@@ -286,13 +181,6 @@ export class AutoSavingsClient {
     async isUserInitialized(userPublicKey) {
         const config = await this.getUserConfig(userPublicKey);
         return config !== null;
-    }
-
-    /**
-     * Calculate savings amount for a given transfer
-     */
-    calculateSavingsAmount(transferAmount, savingsRate) {
-        return (transferAmount * savingsRate) / 100;
     }
 }
 

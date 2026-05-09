@@ -20,23 +20,21 @@ pub mod auto_savings {
         treasury_config.is_paused = false;
         treasury_config.total_tvl = 0;
         treasury_config.tvl_cap = TVL_CAP_LAMPORTS;
-        msg!("Platform treasury initialized with 100 SOL TVL cap");
         Ok(())
     }
 
-    /// Initialize a user's savings account and vault
-    pub fn initialize_user(ctx: Context<InitializeUser>) -> Result<()> {
+    /// Activate a user's savings profile and vault
+    pub fn activate_user(ctx: Context<ActivateUser>) -> Result<()> {
         let user_config = &mut ctx.accounts.user_config;
         user_config.owner = ctx.accounts.user.key();
         user_config.bump = ctx.bumps.user_config;
         user_config.vault_bump = ctx.bumps.vault;
-
-        msg!("User initialized");
+        user_config.total_saved = 0;
         Ok(())
     }
 
-    /// Manually deposit SOL into the savings vault
-    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
+    /// Save SOL into the secure vault (calculates 0.4% fee)
+    pub fn save_sol(ctx: Context<SaveSol>, amount: u64) -> Result<()> {
         require!(amount > 0, ErrorCode::InvalidAmount);
 
         let treasury_config = &mut ctx.accounts.treasury_config;
@@ -84,25 +82,25 @@ pub mod auto_savings {
         );
         transfer(vault_transfer, amount_after_fee)?;
 
-        // Update global TVL
+        // Update global TVL and user stats
         treasury_config.total_tvl = treasury_config
             .total_tvl
             .checked_add(amount_after_fee)
             .ok_or(ErrorCode::Overflow)?;
+            
+        let user_config = &mut ctx.accounts.user_config;
+        user_config.total_saved = user_config.total_saved
+            .checked_add(amount_after_fee)
+            .ok_or(ErrorCode::Overflow)?;
 
-        msg!(
-            "Deposited {} lamports to vault (fee: {} lamports)",
-            amount_after_fee,
-            platform_fee
-        );
         Ok(())
     }
 
     /// Withdraw SOL from the savings vault
-    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
+    pub fn withdraw_sol(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
         require!(amount > 0, ErrorCode::InvalidAmount);
 
-        let user_config = &ctx.accounts.user_config;
+        let user_config = &mut ctx.accounts.user_config;
         let treasury_config = &mut ctx.accounts.treasury_config;
 
         // Calculate platform fee (0.4%)
@@ -153,22 +151,20 @@ pub mod auto_savings {
             transfer(fee_transfer, platform_fee)?;
         }
 
-        // Update global TVL
+        // Update global TVL and user stats
         treasury_config.total_tvl = treasury_config
             .total_tvl
             .checked_sub(amount)
             .ok_or(ErrorCode::Overflow)?;
+            
+        user_config.total_saved = user_config.total_saved
+            .checked_sub(amount)
+            .ok_or(ErrorCode::Overflow)?;
 
-        msg!(
-            "Withdrawn {} lamports from vault (fee: {} lamports)",
-            amount,
-            platform_fee
-        );
         Ok(())
     }
 }
 
-// Account Structures
 #[derive(Accounts)]
 pub struct InitializeTreasury<'info> {
     #[account(
@@ -193,7 +189,7 @@ pub struct InitializeTreasury<'info> {
 }
 
 #[derive(Accounts)]
-pub struct InitializeUser<'info> {
+pub struct ActivateUser<'info> {
     #[account(
         init,
         payer = user,
@@ -216,8 +212,9 @@ pub struct InitializeUser<'info> {
 }
 
 #[derive(Accounts)]
-pub struct Deposit<'info> {
+pub struct SaveSol<'info> {
     #[account(
+        mut,
         seeds = [b"user_config", user.key().as_ref()],
         bump = user_config.bump,
         has_one = owner @ ErrorCode::Unauthorized
@@ -249,14 +246,14 @@ pub struct Deposit<'info> {
 
     #[account(mut)]
     pub user: Signer<'info>,
-    /// CHECK: Owner field in user_config
-    pub owner: UncheckedAccount<'info>,
+    pub owner: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
-pub struct Withdraw<'info> {
+pub struct WithdrawSol<'info> {
     #[account(
+        mut,
         seeds = [b"user_config", user.key().as_ref()],
         bump = user_config.bump,
         has_one = owner @ ErrorCode::Unauthorized
@@ -288,12 +285,10 @@ pub struct Withdraw<'info> {
 
     #[account(mut)]
     pub user: Signer<'info>,
-    /// CHECK: Owner field in user_config
-    pub owner: UncheckedAccount<'info>,
+    pub owner: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
-// Data Structures
 #[account]
 #[derive(InitSpace)]
 pub struct TreasuryConfig {
@@ -310,21 +305,17 @@ pub struct UserConfig {
     pub owner: Pubkey,
     pub bump: u8,
     pub vault_bump: u8,
+    pub total_saved: u64,
 }
 
-// Error Codes
 #[error_code]
 pub enum ErrorCode {
-    #[msg("Invalid savings rate. Must be between 1-90%")]
-    InvalidSavingsRate,
     #[msg("Invalid amount")]
     InvalidAmount,
     #[msg("Insufficient funds")]
     InsufficientFunds,
     #[msg("Unauthorized")]
     Unauthorized,
-    #[msg("Account not active")]
-    AccountNotActive,
     #[msg("Arithmetic overflow")]
     Overflow,
     #[msg("Protocol is paused")]

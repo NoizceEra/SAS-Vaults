@@ -23,5 +23,10 @@ getrandom = "=0.2.15"
 # ============================================================================
 # DEPLOYMENT OPTIMIZATION - Reduces program size by 20-40%
 # ============================================================================
-# Note: These settings prioritize small binary size over compile speed
-# Build will take 2-3x longer but deployment will be cheaper
+[profile.release]
+opt-level = "z"          # Maximize size reduction
+lto = true               # Link-time optimization
+codegen-units = 1        # Single codegen unit for better optimization
+strip = true             # Remove debug symbols
+panic = "abort"          # Smaller panic handler
+overflow-checks = false  # No runtime overflow checks (save size)
