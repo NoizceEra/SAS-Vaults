@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useAutoSavings } from './sdk/useAutoSavings';
-import { Dashboard, LandingPage } from './components';
+import { Dashboard, LandingPage, DocsPage } from './components';
 import './index.css';
 
 function App() {
@@ -20,6 +20,7 @@ function App() {
   const [walletBalance, setWalletBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [showLanding, setShowLanding] = useState(!wallet.connected);
+  const [showDocs, setShowDocs] = useState(false);
 
   // Auto-hide landing if already connected on load
   useEffect(() => {
@@ -92,8 +93,12 @@ function App() {
     }
   };
 
+  if (showDocs) {
+    return <DocsPage onBack={() => setShowDocs(false)} />;
+  }
+
   if (showLanding) {
-    return <LandingPage onLaunchApp={() => setShowLanding(false)} />;
+    return <LandingPage onLaunchApp={() => setShowLanding(false)} onReadDocs={() => setShowDocs(true)} />;
   }
 
   // Loading state

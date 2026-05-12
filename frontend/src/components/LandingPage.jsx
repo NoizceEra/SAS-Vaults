@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PriceTicker from './PriceTicker';
 
-const LandingPage = ({ onLaunchApp }) => {
+const LandingPage = ({ onLaunchApp, onReadDocs }) => {
     const [demoAmount, setDemoAmount] = useState(10);
     const [demoRate, setDemoRate] = useState(10);
     const [copySuccess, setCopySuccess] = useState(false);
@@ -79,7 +79,7 @@ const LandingPage = ({ onLaunchApp }) => {
                             >
                                 Start Saving Now
                             </button>
-                            <button className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all backdrop-blur-md">
+                            <button onClick={onReadDocs} className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all backdrop-blur-md">
                                 Read Docs
                             </button>
                         </div>
@@ -189,6 +189,8 @@ const LandingPage = ({ onLaunchApp }) => {
                         ))}
                     </div>
                 </div>
+            </section>
+
             {/* Footer */}
             <footer className="relative z-10 py-12 border-t border-white/5 bg-slate-950/50">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">

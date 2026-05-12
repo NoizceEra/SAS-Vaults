@@ -16,3 +16,4 @@ export { default as AutoSwapConfig } from './AutoSwapConfig';
 // Landing Page
 export { default as LandingPage } from './LandingPage';
 export { default as PriceTicker } from './PriceTicker';
+export { default as DocsPage } from './DocsPage';
