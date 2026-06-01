@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -9,17 +9,24 @@
    ============================================ */
 
 :root {
-  /* Primary Colors */
-  --primary-purple: #8B5CF6;
+  /* === SLICE Brand Colors (Solana-native) === */
+  --primary-purple: #9945FF;
+  --primary-cyan: #14F195;
   --primary-blue: #3B82F6;
 
+  /* Gradient shorthands */
+  --gradient-brand: linear-gradient(135deg, #9945FF 0%, #14F195 100%);
+  --gradient-brand-h: linear-gradient(90deg, #9945FF 0%, #14F195 100%);
+  --gradient-dark: linear-gradient(135deg, #1a0533 0%, #001a0f 100%);
+
   /* Background Colors */
-  --bg-primary: #0A0E27;
-  --bg-secondary: #141B3D;
-  --bg-tertiary: #1E2749;
+  --bg-primary: #080B1A;
+  --bg-secondary: #0D1225;
+  --bg-tertiary: #141B35;
+  --bg-card: rgba(13, 18, 37, 0.7);
 
   /* Semantic Colors */
-  --success-green: #10B981;
+  --success-green: #14F195;
   --info-blue: #3B82F6;
   --warning-yellow: #F59E0B;
   --error-red: #EF4444;
@@ -30,8 +37,9 @@
   --text-tertiary: #64748B;
 
   /* Glassmorphism */
-  --glass-bg: rgba(20, 27, 61, 0.6);
-  --glass-border: rgba(139, 92, 246, 0.2);
+  --glass-bg: rgba(13, 18, 37, 0.6);
+  --glass-border: rgba(153, 69, 255, 0.2);
+  --glass-border-cyan: rgba(20, 241, 149, 0.2);
 
   /* Spacing */
   --space-xs: 4px;
@@ -49,11 +57,12 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --shadow-glow-purple: 0 4px 24px rgba(139, 92, 246, 0.4);
-  --shadow-glow-green: 0 4px 24px rgba(16, 185, 129, 0.4);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-glow-purple: 0 4px 32px rgba(153, 69, 255, 0.4);
+  --shadow-glow-cyan: 0 4px 32px rgba(20, 241, 149, 0.35);
+  --shadow-glow-green: 0 4px 24px rgba(20, 241, 149, 0.4);
   --shadow-glow-blue: 0 4px 24px rgba(59, 130, 246, 0.4);
 
   /* Transitions */
@@ -70,12 +79,16 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--bg-primary);
   color: var(--text-primary);
   overflow-x: hidden;
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
 }
 
 code {
@@ -607,6 +620,60 @@ code {
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(153,69,255,0.3), 0 0 40px rgba(20,241,149,0.1); }
+  50% { box-shadow: 0 0 40px rgba(153,69,255,0.6), 0 0 80px rgba(20,241,149,0.2); }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.text-gradient-brand {
+  background: var(--gradient-brand-h);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.border-gradient {
+  border: 1px solid;
+  border-image: linear-gradient(135deg, #9945FF, #14F195) 1;
+}
+
+.card-defi {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(24px);
+  transition: all var(--transition-base) var(--easing);
+}
+
+.card-defi:hover {
+  border-color: rgba(153, 69, 255, 0.4);
+  box-shadow: var(--shadow-glow-purple);
+  transform: translateY(-2px);
 }
 
 @keyframes shimmer {

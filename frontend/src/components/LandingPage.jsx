@@ -1,13 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PriceTicker from './PriceTicker';
+
+const PROGRAM_ID = 'GsH9GZHHiVpoTkCgcdjWsezUup8b3dC7YkPF2mbzAzsJ';
+const PROGRAM_ID_SHORT = `${PROGRAM_ID.slice(0, 6)}...${PROGRAM_ID.slice(-6)}`;
 
 const LandingPage = ({ onLaunchApp, onReadDocs }) => {
     const [demoAmount, setDemoAmount] = useState(10);
     const [demoRate, setDemoRate] = useState(10);
     const [copySuccess, setCopySuccess] = useState(false);
+    const [navScrolled, setNavScrolled] = useState(false);
 
-    const savingsAmount = (demoAmount * demoRate) / 100;
-    const projectedYearly = savingsAmount * 52; 
+    const savingsPerTx = (demoAmount * demoRate) / 100;
+    const projectedYearly = savingsPerTx * 52;
+
+    useEffect(() => {
+        const onScroll = () => setNavScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', onScroll);
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
 
     const handleCopy = () => {
         navigator.clipboard.writeText('npm install -g @slice/cli');
@@ -16,195 +26,442 @@ const LandingPage = ({ onLaunchApp, onReadDocs }) => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0E27] text-white font-sans selection:bg-purple-500 selection:text-white overflow-x-hidden">
+        <div className="min-h-screen text-white overflow-x-hidden" style={{ background: '#080B1A', fontFamily: "'Space Grotesk', sans-serif" }}>
             <PriceTicker />
-            
-            {/* Animated Background Elements */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-600/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-                <div className="absolute -bottom-[10%] left-[20%] w-[50%] h-[50%] bg-indigo-900/10 rounded-full blur-[150px]" />
+
+            {/* === BACKGROUND ORBS === */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20 animate-pulse"
+                    style={{ background: 'radial-gradient(circle, #9945FF 0%, transparent 70%)', filter: 'blur(60px)', animationDuration: '6s' }} />
+                <div className="absolute top-1/3 -right-24 w-80 h-80 rounded-full opacity-15 animate-pulse"
+                    style={{ background: 'radial-gradient(circle, #14F195 0%, transparent 70%)', filter: 'blur(80px)', animationDuration: '8s', animationDelay: '2s' }} />
+                <div className="absolute bottom-0 left-1/3 w-[500px] h-64 rounded-full opacity-10"
+                    style={{ background: 'radial-gradient(ellipse, #9945FF 0%, #14F195 50%, transparent 70%)', filter: 'blur(100px)' }} />
             </div>
 
-            {/* Navigation */}
-            <nav className="relative z-50 max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
-                <div className="flex items-center gap-3 group cursor-pointer">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:scale-110 transition-transform">
-                        <span className="text-2xl font-bold">S</span>
+            {/* === NAVIGATION === */}
+            <nav className={`sticky top-0 z-50 transition-all duration-300 ${navScrolled ? 'border-b' : ''}`}
+                style={{
+                    background: navScrolled ? 'rgba(8, 11, 26, 0.95)' : 'transparent',
+                    backdropFilter: navScrolled ? 'blur(20px)' : 'none',
+                    borderColor: 'rgba(153, 69, 255, 0.15)'
+                }}>
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                    {/* Logo */}
+                    <div className="flex items-center gap-3 cursor-pointer group" onClick={onLaunchApp}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black shadow-lg transition-transform group-hover:scale-110"
+                            style={{ background: 'linear-gradient(135deg, #9945FF, #14F195)', boxShadow: '0 0 20px rgba(153,69,255,0.4)' }}>
+                            S
+                        </div>
+                        <span className="text-xl font-black tracking-tight" style={{
+                            background: 'linear-gradient(90deg, #fff 0%, #a78bfa 100%)',
+                            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+                        }}>
+                            SLICE
+                        </span>
+                        <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ml-1"
+                            style={{ background: 'rgba(20,241,149,0.1)', border: '1px solid rgba(20,241,149,0.3)', color: '#14F195' }}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                            MAINNET
+                        </span>
                     </div>
-                    <span className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                        Slice
-                    </span>
-                </div>
-                <div className="flex items-center gap-8">
-                    <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-                        <a href="#features" className="hover:text-white transition-colors">Features</a>
-                        <a href="#cli" className="hover:text-white transition-colors">CLI</a>
-                        <a href="#security" className="hover:text-white transition-colors">Security</a>
+
+                    {/* Nav Links */}
+                    <div className="hidden md:flex items-center gap-8">
+                        {['Features', 'CLI', 'Security', 'Docs'].map((link) => (
+                            <button key={link}
+                                onClick={link === 'Docs' ? onReadDocs : undefined}
+                                className="text-sm font-medium transition-colors duration-200"
+                                style={{ color: '#94A3B8' }}
+                                onMouseEnter={e => e.target.style.color = '#fff'}
+                                onMouseLeave={e => e.target.style.color = '#94A3B8'}>
+                                {link}
+                            </button>
+                        ))}
                     </div>
-                    <button
-                        onClick={onLaunchApp}
-                        className="px-8 py-3 bg-white text-slate-900 rounded-full font-bold hover:bg-slate-100 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-white/10"
-                    >
-                        Enter App
+
+                    {/* CTA */}
+                    <button onClick={onLaunchApp}
+                        className="px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 hover:scale-105 active:scale-95"
+                        style={{
+                            background: 'linear-gradient(135deg, #9945FF, #14F195)',
+                            boxShadow: '0 0 24px rgba(153,69,255,0.35)',
+                            color: '#000'
+                        }}>
+                        Launch App
                     </button>
                 </div>
             </nav>
 
-            {/* Hero Section */}
-            <main className="relative z-10 max-w-7xl mx-auto px-6 pt-16 pb-32">
+            {/* === HERO === */}
+            <section className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-24">
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
-                    {/* Content */}
-                    <div className="text-center lg:text-left">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Live on Solana Mainnet</span>
+                    {/* Left: Copy */}
+                    <div>
+                        {/* Badge */}
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 text-xs font-bold tracking-widest uppercase"
+                            style={{ background: 'rgba(153,69,255,0.1)', border: '1px solid rgba(153,69,255,0.3)', color: '#c084fc' }}>
+                            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#14F195' }} />
+                            Live on Solana Mainnet-Beta
                         </div>
-                        
-                        <h1 className="text-6xl lg:text-8xl font-black tracking-tighter leading-[0.9] mb-8">
-                            SAVE <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400">
-                                AUTOMATICALLY
-                            </span>
+
+                        {/* Headline */}
+                        <h1 className="text-6xl lg:text-7xl font-black tracking-tighter leading-none mb-6">
+                            <span className="block text-white">SECURE.</span>
+                            <span className="block" style={{
+                                background: 'linear-gradient(90deg, #9945FF 0%, #14F195 100%)',
+                                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                                backgroundSize: '200% 100%',
+                                animation: 'gradient-shift 4s ease infinite'
+                            }}>SAVE.</span>
+                            <span className="block text-white">SOLANA.</span>
                         </h1>
-                        
-                        <p className="text-xl text-slate-400 mb-10 max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium">
-                            The non-custodial protocol that secures a percentage of your SOL every time you move it. No more manual transfers. No more forgetting to save.
+
+                        <p className="text-lg leading-relaxed mb-10 max-w-md" style={{ color: '#94A3B8' }}>
+                            The non-custodial protocol that automatically vaults a portion of every SOL transaction.
+                            Set your rate. Let the chain handle the rest. Even your AI agents can use it.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-                            <button
-                                onClick={onLaunchApp}
-                                className="w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl font-black text-lg shadow-2xl shadow-purple-500/20 hover:scale-105 transition-all"
-                            >
-                                Start Saving Now
+                        {/* CTAs */}
+                        <div className="flex flex-wrap gap-4 mb-12">
+                            <button onClick={onLaunchApp}
+                                className="px-8 py-4 rounded-2xl font-black text-base transition-all duration-200 hover:scale-105 active:scale-95"
+                                style={{
+                                    background: 'linear-gradient(135deg, #9945FF, #14F195)',
+                                    boxShadow: '0 0 32px rgba(153,69,255,0.4)',
+                                    color: '#000'
+                                }}>
+                                Start Saving →
                             </button>
-                            <button onClick={onReadDocs} className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all backdrop-blur-md">
+                            <button onClick={onReadDocs}
+                                className="px-8 py-4 rounded-2xl font-bold text-base transition-all duration-200 hover:scale-105"
+                                style={{
+                                    background: 'rgba(255,255,255,0.04)',
+                                    border: '1px solid rgba(255,255,255,0.12)',
+                                    color: '#fff'
+                                }}>
                                 Read Docs
                             </button>
                         </div>
 
-                        {/* CLI Integration Preview */}
-                        <div id="cli" className="mt-12 p-1 bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl border border-white/5 max-w-md mx-auto lg:mx-0">
-                            <div className="flex items-center justify-between px-4 py-2 bg-slate-950/50 rounded-t-xl border-b border-white/5">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Agentic CLI Install</span>
+                        {/* Terminal CLI Card */}
+                        <div id="cli" className="rounded-2xl overflow-hidden max-w-md"
+                            style={{ background: '#0D1117', border: '1px solid rgba(153,69,255,0.25)', boxShadow: '0 0 32px rgba(153,69,255,0.1)' }}>
+                            <div className="flex items-center justify-between px-4 py-3"
+                                style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                 <div className="flex gap-1.5">
-                                    <div className="w-2 h-2 rounded-full bg-red-500/50" />
-                                    <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
-                                    <div className="w-2 h-2 rounded-full bg-green-500/50" />
+                                    <div className="w-3 h-3 rounded-full" style={{ background: '#FF5F57' }} />
+                                    <div className="w-3 h-3 rounded-full" style={{ background: '#FEBC2E' }} />
+                                    <div className="w-3 h-3 rounded-full" style={{ background: '#28C840' }} />
                                 </div>
+                                <span className="text-xs font-mono font-bold" style={{ color: '#4B5563' }}>AGENTIC CLI</span>
+                                <div className="w-12" />
                             </div>
-                            <div className="p-4 flex items-center justify-between font-mono text-sm">
-                                <code className="text-purple-400">
-                                    <span className="text-slate-500">$</span> npm install -g @slice/cli
+                            <div className="px-5 py-4 flex items-center justify-between">
+                                <code className="text-sm font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                                    <span style={{ color: '#14F195' }}>$</span>
+                                    <span style={{ color: '#9CA3AF' }}> npm install -g </span>
+                                    <span style={{ color: '#9945FF' }}>@slice/cli</span>
                                 </code>
-                                <button 
-                                    onClick={handleCopy}
-                                    className="p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-400 hover:text-white"
-                                >
+                                <button onClick={handleCopy}
+                                    className="ml-4 p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                                    style={{ background: 'rgba(153,69,255,0.15)', border: '1px solid rgba(153,69,255,0.3)' }}>
                                     {copySuccess ? (
-                                        <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                        <svg className="w-4 h-4" fill="none" stroke="#14F195" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
                                     ) : (
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                                        <svg className="w-4 h-4" fill="none" stroke="#9945FF" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                        </svg>
                                     )}
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* Interactive Simulator Card */}
-                    <div className="relative group">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-blue-500 rounded-[2.5rem] blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
-                        <div className="relative bg-[#141B3D]/80 border border-white/10 backdrop-blur-2xl rounded-[2rem] p-10 shadow-3xl">
-                            <div className="flex items-center justify-between mb-10">
+                    {/* Right: Interactive Simulator */}
+                    <div className="relative">
+                        <div className="absolute -inset-px rounded-3xl opacity-60" style={{
+                            background: 'linear-gradient(135deg, #9945FF, #14F195)',
+                            filter: 'blur(1px)',
+                            animation: 'glow-pulse 3s ease-in-out infinite'
+                        }} />
+                        <div className="relative rounded-3xl p-8" style={{
+                            background: 'rgba(13, 18, 37, 0.9)',
+                            border: '1px solid rgba(153,69,255,0.3)',
+                            backdropFilter: 'blur(24px)'
+                        }}>
+                            <div className="flex items-center justify-between mb-8">
                                 <div>
-                                    <h3 className="text-2xl font-bold">Simulator</h3>
-                                    <p className="text-sm text-slate-400">See your future growth</p>
+                                    <h3 className="text-xl font-black text-white">Savings Simulator</h3>
+                                    <p className="text-sm mt-0.5" style={{ color: '#64748B' }}>Visualize your vault growth</p>
+                                </div>
+                                <div className="px-3 py-1.5 rounded-full text-xs font-bold"
+                                    style={{ background: 'rgba(20,241,149,0.1)', color: '#14F195', border: '1px solid rgba(20,241,149,0.3)' }}>
+                                    Non-Custodial
                                 </div>
                             </div>
 
-                            <div className="space-y-8">
-                                <div>
-                                    <div className="flex justify-between mb-4">
-                                        <label className="text-sm font-bold text-slate-400 uppercase tracking-widest">Initial Deposit</label>
-                                        <span className="text-xl font-mono font-bold">{demoAmount} SOL</span>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="1"
-                                        max="100"
-                                        value={demoAmount}
-                                        onChange={(e) => setDemoAmount(parseInt(e.target.value))}
-                                        className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                                    />
+                            {/* Slider: Deposit Amount */}
+                            <div className="mb-8">
+                                <div className="flex justify-between mb-3">
+                                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#64748B' }}>Transaction Size</span>
+                                    <span className="text-lg font-black text-white font-mono">{demoAmount} SOL</span>
                                 </div>
-
-                                <div>
-                                    <div className="flex justify-between mb-4">
-                                        <label className="text-sm font-bold text-slate-400 uppercase tracking-widest">Savings Rate</label>
-                                        <span className="text-xl font-mono font-bold text-purple-400">{demoRate}%</span>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="1"
-                                        max="50"
-                                        value={demoRate}
-                                        onChange={(e) => setDemoRate(parseInt(e.target.value))}
-                                        className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                                    />
-                                </div>
+                                <input type="range" min="1" max="100" value={demoAmount}
+                                    onChange={e => setDemoAmount(+e.target.value)}
+                                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                                    style={{ background: `linear-gradient(to right, #9945FF ${demoAmount}%, rgba(255,255,255,0.1) ${demoAmount}%)`, accentColor: '#9945FF' }} />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6 mt-12">
-                                <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
-                                    <p className="text-xs font-bold text-slate-500 uppercase mb-2">Vaulted</p>
-                                    <p className="text-3xl font-black">{savingsAmount.toFixed(2)}</p>
-                                    <p className="text-xs text-slate-400 mt-1">SOL Saved</p>
+                            {/* Slider: Savings Rate */}
+                            <div className="mb-10">
+                                <div className="flex justify-between mb-3">
+                                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#64748B' }}>Savings Rate</span>
+                                    <span className="text-lg font-black font-mono" style={{ color: '#9945FF' }}>{demoRate}%</span>
                                 </div>
-                                <div className="p-6 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-2xl border border-purple-500/20">
-                                    <p className="text-xs font-bold text-purple-400 uppercase mb-2">Yearly Goal</p>
-                                    <p className="text-3xl font-black text-green-400">{projectedYearly.toFixed(1)}</p>
-                                    <p className="text-xs text-slate-400 mt-1">SOL/Year</p>
+                                <input type="range" min="1" max="50" value={demoRate}
+                                    onChange={e => setDemoRate(+e.target.value)}
+                                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                                    style={{ background: `linear-gradient(to right, #14F195 ${demoRate * 2}%, rgba(255,255,255,0.1) ${demoRate * 2}%)`, accentColor: '#14F195' }} />
+                            </div>
+
+                            {/* Results */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-5 rounded-2xl" style={{ background: 'rgba(153,69,255,0.08)', border: '1px solid rgba(153,69,255,0.2)' }}>
+                                    <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#9945FF' }}>Per Transaction</p>
+                                    <p className="text-3xl font-black text-white">{savingsPerTx.toFixed(2)}</p>
+                                    <p className="text-xs mt-1" style={{ color: '#64748B' }}>SOL Vaulted</p>
+                                </div>
+                                <div className="p-5 rounded-2xl" style={{ background: 'rgba(20,241,149,0.08)', border: '1px solid rgba(20,241,149,0.2)' }}>
+                                    <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#14F195' }}>Yearly Projection</p>
+                                    <p className="text-3xl font-black" style={{ color: '#14F195' }}>{projectedYearly.toFixed(1)}</p>
+                                    <p className="text-xs mt-1" style={{ color: '#64748B' }}>SOL / Year</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </main>
+            </section>
 
-            {/* Protocol Metrics */}
-            <section className="relative z-10 py-20 border-y border-white/5 bg-white/[0.02]">
+            {/* === STATS BAR === */}
+            <div className="relative z-10 py-5" style={{ background: 'rgba(255,255,255,0.025)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-0 lg:divide-x" style={{ '--tw-divide-opacity': 1 }}>
                         {[
-                            { label: 'Network', value: 'Mainnet-Beta', color: 'text-white' },
-                            { label: 'Security', value: 'Non-Custodial', color: 'text-emerald-400' },
-                            { label: 'Total Saved', value: '14,200+', color: 'text-white' },
-                            { label: 'Performance', value: 'Optimized', color: 'text-purple-400' },
-                        ].map((stat, i) => (
-                            <div key={i} className="text-center">
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-3">{stat.label}</p>
-                                <p className={`text-2xl lg:text-3xl font-black ${stat.color}`}>{stat.value}</p>
+                            { label: 'Program ID', value: PROGRAM_ID_SHORT, mono: true, href: `https://explorer.solana.com/address/${PROGRAM_ID}` },
+                            { label: 'Network', value: 'Mainnet-Beta', color: '#14F195' },
+                            { label: 'Security', value: 'Non-Custodial', color: '#9945FF' },
+                            { label: 'TVL Cap', value: '100 SOL', color: '#fff' },
+                        ].map((s, i) => (
+                            <div key={i} className="text-center lg:px-8">
+                                <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: '#4B5563' }}>{s.label}</p>
+                                {s.href ? (
+                                    <a href={s.href} target="_blank" rel="noopener noreferrer"
+                                        className="text-sm font-bold hover:underline transition-colors"
+                                        style={{ color: '#9945FF', fontFamily: s.mono ? "'JetBrains Mono', monospace" : 'inherit' }}>
+                                        {s.value}
+                                    </a>
+                                ) : (
+                                    <p className="text-sm font-black" style={{ color: s.color || '#fff' }}>{s.value}</p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* === FEATURES === */}
+            <section id="features" className="relative z-10 py-28 max-w-7xl mx-auto px-6">
+                <div className="text-center mb-16">
+                    <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#9945FF' }}>Protocol Design</p>
+                    <h2 className="text-4xl lg:text-5xl font-black text-white mb-4">Built different.</h2>
+                    <p className="text-lg max-w-xl mx-auto" style={{ color: '#64748B' }}>
+                        Every design decision was made with one goal: secure, automated savings that you and your AI agents can trust.
+                    </p>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                    {[
+                        {
+                            icon: '🔐',
+                            title: 'Non-Custodial Vaults',
+                            desc: 'Your funds live in a Program Derived Address controlled exclusively by your keypair. The protocol has zero ability to touch your SOL.',
+                            accent: '#9945FF'
+                        },
+                        {
+                            icon: '⚡',
+                            title: 'Instant Settlement',
+                            desc: 'Built on Solana. Every save and withdrawal settles in under 400ms with transaction fees under $0.001.',
+                            accent: '#14F195'
+                        },
+                        {
+                            icon: '🤖',
+                            title: 'Agent-Native',
+                            desc: 'The @slice/cli gives any AI agent the ability to activate, save, and manage vaults without ever touching a browser.',
+                            accent: '#9945FF'
+                        },
+                        {
+                            icon: '🛡️',
+                            title: 'Immutable Fee Rate',
+                            desc: '0.4% fee is hard-coded at compile time. No governance, no rug. Fees go to the treasury vault — no admin key controls them.',
+                            accent: '#14F195'
+                        },
+                        {
+                            icon: '📊',
+                            title: 'TVL Cap Protected',
+                            desc: 'A 100 SOL TVL cap limits blast radius during launch. Adjustable by the protocol authority as security confidence grows.',
+                            accent: '#9945FF'
+                        },
+                        {
+                            icon: '🔓',
+                            title: 'Always Withdrawable',
+                            desc: 'Even if the protocol is paused, withdrawals remain open. You can never be locked out of your own funds.',
+                            accent: '#14F195'
+                        },
+                    ].map((f, i) => (
+                        <div key={i} className="group p-6 rounded-2xl transition-all duration-300 cursor-default"
+                            style={{
+                                background: 'rgba(13, 18, 37, 0.6)',
+                                border: `1px solid rgba(255,255,255,0.06)`,
+                                backdropFilter: 'blur(12px)'
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.border = `1px solid ${f.accent}40`;
+                                e.currentTarget.style.boxShadow = `0 0 32px ${f.accent}18`;
+                                e.currentTarget.style.transform = 'translateY(-4px)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.border = '1px solid rgba(255,255,255,0.06)';
+                                e.currentTarget.style.boxShadow = 'none';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                            }}>
+                            <div className="text-3xl mb-4">{f.icon}</div>
+                            <h3 className="text-base font-black text-white mb-2">{f.title}</h3>
+                            <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>{f.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* === HOW IT WORKS === */}
+            <section className="relative z-10 py-24" style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="max-w-4xl mx-auto px-6 text-center">
+                    <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#14F195' }}>Flow</p>
+                    <h2 className="text-4xl font-black text-white mb-14">Three steps to automated savings.</h2>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {[
+                            { step: '01', title: 'Connect & Activate', desc: 'Connect your Solana wallet and sign a single transaction to create your personal vault PDA on-chain.' },
+                            { step: '02', title: 'Set Your Rate', desc: 'Choose what percentage of each deposit goes into your vault. 5%, 10%, 20% — your call.' },
+                            { step: '03', title: 'Save Automatically', desc: 'Every time you call saveSol, the protocol auto-routes your slice to the vault. No maintenance required.' },
+                        ].map((s, i) => (
+                            <div key={i} className="text-left">
+                                <div className="text-5xl font-black mb-4" style={{
+                                    background: 'linear-gradient(135deg, #9945FF, #14F195)',
+                                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+                                }}>
+                                    {s.step}
+                                </div>
+                                <h3 className="text-lg font-black text-white mb-2">{s.title}</h3>
+                                <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>{s.desc}</p>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="relative z-10 py-12 border-t border-white/5 bg-slate-950/50">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                            <span className="text-sm font-bold">S</span>
+            {/* === SECURITY === */}
+            <section id="security" className="relative z-10 py-28 max-w-7xl mx-auto px-6">
+                <div className="text-center mb-16">
+                    <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#14F195' }}>Security</p>
+                    <h2 className="text-4xl lg:text-5xl font-black text-white">Trust the math, not the team.</h2>
+                </div>
+                <div className="grid md:grid-cols-3 gap-6">
+                    {[
+                        { title: 'PDA-Based Custody', icon: '🔏', desc: 'Vault accounts are Program Derived Addresses. The math of Solana cryptography guarantees only you can sign for your vault.' },
+                        { title: 'Open Source', icon: '📖', desc: 'Every line of the smart contract is public on GitHub. Read the code, verify the logic, trust what you can verify.' },
+                        { title: 'Minimalist Core', icon: '⚙️', desc: '326 lines. Four instructions. No bloat, no attack surface. The smaller the code, the smaller the risk.' },
+                    ].map((s, i) => (
+                        <div key={i} className="p-8 rounded-2xl text-center"
+                            style={{ background: 'rgba(20,241,149,0.04)', border: '1px solid rgba(20,241,149,0.15)' }}>
+                            <div className="text-4xl mb-4">{s.icon}</div>
+                            <h3 className="text-lg font-black text-white mb-3">{s.title}</h3>
+                            <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>{s.desc}</p>
                         </div>
-                        <span className="font-bold text-slate-300">Slice</span>
+                    ))}
+                </div>
+            </section>
+
+            {/* === FINAL CTA === */}
+            <section className="relative z-10 py-24 text-center">
+                <div className="max-w-2xl mx-auto px-6">
+                    <h2 className="text-5xl font-black text-white mb-6">Ready to start slicing?</h2>
+                    <p className="text-lg mb-10" style={{ color: '#64748B' }}>
+                        Connect your wallet and activate your vault in under 60 seconds.
+                    </p>
+                    <button onClick={onLaunchApp}
+                        className="px-12 py-5 rounded-2xl font-black text-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                        style={{
+                            background: 'linear-gradient(135deg, #9945FF, #14F195)',
+                            boxShadow: '0 0 48px rgba(153,69,255,0.4)',
+                            color: '#000'
+                        }}>
+                        Open App →
+                    </button>
+                </div>
+            </section>
+
+            {/* === FOOTER === */}
+            <footer className="relative z-10 py-12" style={{ background: 'rgba(0,0,0,0.4)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                        {/* Brand */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black"
+                                style={{ background: 'linear-gradient(135deg, #9945FF, #14F195)', color: '#000' }}>
+                                S
+                            </div>
+                            <span className="font-black text-white">SLICE Protocol</span>
+                        </div>
+
+                        {/* Links */}
+                        <div className="flex items-center gap-8">
+                            <button onClick={onReadDocs} className="text-sm transition-colors hover:text-white" style={{ color: '#64748B' }}>
+                                Docs
+                            </button>
+                            <a href="https://github.com/NoizceEra/SAS-Vaults" target="_blank" rel="noopener noreferrer"
+                                className="text-sm transition-colors hover:text-white" style={{ color: '#64748B' }}>
+                                GitHub
+                            </a>
+                            <a href={`https://explorer.solana.com/address/${PROGRAM_ID}`} target="_blank" rel="noopener noreferrer"
+                                className="text-sm transition-colors hover:text-white" style={{ color: '#64748B' }}>
+                                Explorer
+                            </a>
+                        </div>
+
+                        {/* Program ID */}
+                        <div className="text-xs font-mono" style={{ color: '#374151', fontFamily: "'JetBrains Mono', monospace" }}>
+                            {PROGRAM_ID_SHORT}
+                        </div>
                     </div>
-                    <div className="text-xs font-medium text-slate-500 uppercase tracking-widest">
-                        © 2026 Slice. All rights reserved.
+                    <div className="mt-8 text-center text-xs" style={{ color: '#374151' }}>
+                        © 2026 SLICE Protocol. Non-custodial. Open source. Built on Solana.
                     </div>
                 </div>
             </footer>
+
+            {/* Gradient shift keyframe */}
+            <style>{`
+                @keyframes gradient-shift {
+                    0%, 100% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                }
+                @keyframes glow-pulse {
+                    0%, 100% { opacity: 0.4; }
+                    50% { opacity: 0.7; }
+                }
+            `}</style>
         </div>
     );
 };
