@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program::{transfer, Transfer};
 
-declare_id!("FoPp8w9H2MFskx77ypu5yyxizKLDqtPSZ7dMvPs4whGn");
+declare_id!("GsH9GZHHiVpoTkCgcdjWsezUup8b3dC7YkPF2mbzAzsJ");
 
 // Platform fee: 0.4% (40 basis points out of 10,000)
 const PLATFORM_FEE_BASIS_POINTS: u64 = 40;

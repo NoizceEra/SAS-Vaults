@@ -9,11 +9,11 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const PROGRAM_ID = new PublicKey('FoPp8w9H2MFskx77ypu5yyxizKLDqtPSZ7dMvPs4whGn');
-const RPC_URL = 'https://mainnet.helius-rpc.com/?api-key=9a551d98-dd3d-4309-b523-bbbd227cee3e';
+const PROGRAM_ID = new PublicKey('GsH9GZHHiVpoTkCgcdjWsezUup8b3dC7YkPF2mbzAzsJ');
+const RPC_URL = 'https://api.mainnet-beta.solana.com';
 
 // Load deployer keypair
-const keypairPath = path.join(process.env.HOME || process.env.USERPROFILE, '.config', 'solana', 'deployer.json');
+const keypairPath = path.join(process.env.HOME || process.env.USERPROFILE, '.config', 'solana', 'new_deployer.json');
 const keypairData = JSON.parse(fs.readFileSync(keypairPath, 'utf8'));
 const authority = Keypair.fromSecretKey(new Uint8Array(keypairData));
 

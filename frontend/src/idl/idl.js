@@ -2,7 +2,7 @@
 export const IDL = {
     "version": "0.1.0",
     "name": "auto_savings",
-    "metadata": { "address": "FoPp8w9H2MFskx77ypu5yyxizKLDqtPSZ7dMvPs4whGn" },
+    "metadata": { "address": "GsH9GZHHiVpoTkCgcdjWsezUup8b3dC7YkPF2mbzAzsJ" },
     "instructions": [
         {
             "name": "initializeTreasury",
